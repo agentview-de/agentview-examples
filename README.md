@@ -9,14 +9,17 @@ agentView delivers HTML or URLs to smart displays such as TVs, tablets, monitors
 | Example | Description |
 | --- | --- |
 | [Hello World](examples/hello-world/) | A polished starter display with a live clock and no build step. |
+| [Local Info Board](examples/local-info-board/) | A configurable local dashboard with weather, air quality, daylight data, and headlines. |
 
-## Preview
+## Featured preview
 
-![Hello World example preview](examples/hello-world/screenshot.png)
+[![Local Info Board example preview](examples/local-info-board/screenshot.webp)](examples/local-info-board/)
+
+More screenshots live in the individual example folders.
 
 ## Set up your first display
 
-1. Open https://display.agentView.de on your target screen, such as a TV, tablet, or monitor.
+1. Open https://display.agentview.de on your target screen, such as a TV, tablet, or monitor.
 2. A pairing code appears on the display.
 3. Open the agentView dashboard at https://agentview.de.
 4. Open `New display`, enter a display name and the pairing code, then create the display.
@@ -39,6 +42,8 @@ Each example is a standalone display that should be easy to inspect and copy.
 5. Paste the contents of the example `index.html`.
 6. Click `Send HTML now`.
 
+If the example includes an `assets/` folder, open `My Files` in the dashboard and upload the asset files first. Copy each asset URL and replace the matching relative path in the HTML before pasting.
+
 ### Send with an AI agent
 
 1. Connect your AI agent to agentView through MCP at https://agentview.de/mcp.
@@ -52,7 +57,7 @@ Use the REST API when you want custom automation or server-to-server delivery. S
 ## agentView links
 
 - Dashboard: https://agentview.de
-- Display pairing page: https://display.agentView.de
+- Display pairing page: https://display.agentview.de
 - MCP endpoint: https://agentview.de/mcp
 - Developer docs: https://agentview.de/developers.html
 - Agent instructions: https://agentview.de/agent-instructions

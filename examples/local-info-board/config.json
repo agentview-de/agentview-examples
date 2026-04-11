@@ -1,0 +1,31 @@
+{
+  "title": "Local Info Board",
+  "locationName": "Sample Location",
+  "timezone": "Europe/Berlin",
+  "locale": "en-GB",
+  "fontUrl": "./assets/material-symbols-w300.woff2",
+  "backgroundImage": "./assets/weather-bg.webp",
+  "coordinates": {
+    "latitude": 50.518,
+    "longitude": 6.216
+  },
+  "units": {
+    "temperature": "celsius",
+    "windSpeed": "kmh"
+  },
+  "features": {
+    "weather": true,
+    "airQuality": true,
+    "news": true
+  },
+  "apis": {
+    "weatherBaseUrl": "https://api.open-meteo.com/v1/forecast",
+    "airQualityBaseUrl": "https://air-quality-api.open-meteo.com/v1/air-quality",
+    "newsUrl": "https://www.tagesschau.de/api2u/news"
+  },
+  "rotationInterval": 12,
+  "refreshInterval": 15,
+  "newsUnavailableMessage": "Headlines are currently unavailable.",
+  "weatherUnavailableMessage": "Weather is currently unavailable.",
+  "airQualityUnavailableMessage": "Unavailable"
+}

@@ -1,0 +1,935 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Local Info Board</title>
+  <style>
+
+    :root {
+      color-scheme: dark;
+      --bg: #071016;
+      --panel: rgba(26, 34, 48, 0.72);
+      --panel-soft: rgba(255, 255, 255, 0.07);
+      --text: #f7f8fb;
+      --muted: rgba(255, 255, 255, 0.68);
+      --quiet: rgba(255, 255, 255, 0.48);
+      --accent: #4ade80;
+      --line: rgba(255, 255, 255, 0.12);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      width: 100vw;
+      min-height: 100vh;
+      overflow: hidden;
+      background:
+        linear-gradient(90deg, rgba(5, 10, 20, 0.9) 0%, rgba(5, 10, 20, 0.55) 48%, rgba(5, 10, 20, 0.22) 100%),
+        linear-gradient(135deg, #263746, #111820 60%, #2b3922);
+      background-position: center;
+      background-size: cover;
+      color: var(--text);
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    .material-symbols-outlined {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-family: "Material Symbols Outlined";
+      font-size: 32px;
+      font-style: normal;
+      font-weight: 300;
+      line-height: 1;
+      text-transform: none;
+      white-space: nowrap;
+      font-variation-settings: "FILL" 0, "wght" 300, "GRAD" 0, "opsz" 24;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    main {
+      width: 100vw;
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: minmax(460px, 0.9fr) minmax(620px, 1.05fr);
+      align-items: center;
+      gap: 56px;
+      padding: 72px 96px;
+    }
+
+    .hero {
+      min-height: calc(100vh - 144px);
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      padding: 56px 0 40px;
+    }
+
+    .clock {
+      font-size: 132px;
+      line-height: 0.95;
+      font-weight: 200;
+      letter-spacing: 0;
+      text-shadow: 0 18px 44px rgba(0, 0, 0, 0.52);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .date {
+      margin-top: 18px;
+      color: var(--accent);
+      font-size: 30px;
+      font-weight: 500;
+      letter-spacing: 0;
+      text-transform: uppercase;
+      text-shadow: 0 12px 24px rgba(0, 0, 0, 0.42);
+    }
+
+    .weather-summary {
+      align-self: end;
+      display: grid;
+      gap: 26px;
+      margin-left: 84px;
+    }
+
+    .location {
+      display: inline-flex;
+      align-items: center;
+      gap: 18px;
+      color: var(--muted);
+      font-size: 30px;
+      font-weight: 300;
+      letter-spacing: 0;
+      text-transform: uppercase;
+    }
+
+    .temperature-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+    }
+
+    .temperature {
+      font-size: 148px;
+      line-height: 0.86;
+      font-weight: 700;
+      letter-spacing: 0;
+      text-shadow: 0 18px 44px rgba(0, 0, 0, 0.42);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .unit {
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 48px;
+      font-weight: 200;
+    }
+
+    .condition {
+      display: inline-flex;
+      align-items: center;
+      gap: 18px;
+      color: var(--text);
+      font-size: 36px;
+      font-weight: 300;
+      letter-spacing: 0;
+    }
+
+    .condition .material-symbols-outlined {
+      font-size: 46px;
+    }
+
+    .panel {
+      min-height: 760px;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      border-radius: 8px;
+      background: var(--panel);
+      box-shadow: 0 34px 76px rgba(0, 0, 0, 0.34);
+      backdrop-filter: blur(28px);
+      -webkit-backdrop-filter: blur(28px);
+    }
+
+    .forecast-section {
+      padding: 46px 58px 40px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .section-title {
+      display: inline-flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 34px;
+      color: var(--muted);
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: 0;
+      text-transform: uppercase;
+    }
+
+    .section-title .material-symbols-outlined {
+      color: var(--muted);
+      font-size: 26px;
+    }
+
+    .forecast {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 24px;
+    }
+
+    .forecast-card {
+      display: grid;
+      justify-items: center;
+      gap: 22px;
+      min-height: 160px;
+    }
+
+    .forecast-time {
+      color: var(--muted);
+      font-size: 26px;
+      font-weight: 300;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .forecast-icon {
+      color: var(--text);
+      font-size: 44px;
+      min-height: 44px;
+      line-height: 1;
+    }
+
+    .forecast-temp {
+      color: var(--text);
+      font-size: 36px;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .forecast-status {
+      grid-column: 1 / -1;
+      display: grid;
+      place-items: center;
+      min-height: 160px;
+      color: var(--muted);
+      font-size: 24px;
+      font-weight: 300;
+      text-align: center;
+    }
+
+    .rotator {
+      position: relative;
+      min-height: 470px;
+    }
+
+    .view {
+      position: absolute;
+      inset: 0;
+      padding: 56px 64px 52px;
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(18px);
+      transition: opacity 0.75s ease, transform 0.75s ease, visibility 0.75s ease;
+    }
+
+    .view.active {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+    }
+
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 66px 92px;
+      height: 100%;
+      align-content: center;
+    }
+
+    .metric {
+      display: grid;
+      gap: 28px;
+    }
+
+    .metric-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 18px;
+      color: var(--muted);
+      font-size: 22px;
+      font-weight: 500;
+      letter-spacing: 0;
+      text-transform: uppercase;
+    }
+
+    .metric-label .material-symbols-outlined {
+      color: var(--accent);
+      font-size: 32px;
+    }
+
+    .metric-value {
+      color: var(--text);
+      font-size: 66px;
+      line-height: 0.95;
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .metric-unit {
+      color: var(--muted);
+      font-size: 24px;
+      font-weight: 300;
+    }
+
+    .headlines {
+      display: grid;
+      align-content: center;
+      gap: 24px;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    .headline {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 22px;
+      align-items: start;
+    }
+
+    .headline-marker {
+      margin-top: 7px;
+      color: var(--accent);
+      font-size: 26px;
+      line-height: 1;
+    }
+
+    .headline-text {
+      color: var(--text);
+      font-size: 24px;
+      line-height: 1.38;
+      font-weight: 300;
+    }
+
+    .headline.status .headline-marker,
+    .headline.status .headline-text {
+      color: var(--muted);
+    }
+
+    .dots {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      min-height: 44px;
+      padding-bottom: 24px;
+    }
+
+    .dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.22);
+      transition: width 0.35s ease, background 0.35s ease;
+    }
+
+    .dot.active {
+      width: 30px;
+      border-radius: 8px;
+      background: var(--accent);
+    }
+
+    .loading {
+      position: fixed;
+      inset: 0;
+      z-index: 20;
+      display: grid;
+      place-items: center;
+      background: var(--bg);
+      color: var(--muted);
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: 0;
+      text-transform: uppercase;
+      transition: opacity 0.5s ease, visibility 0.5s ease;
+    }
+
+    .loading.hidden {
+      opacity: 0;
+      visibility: hidden;
+    }
+
+    @media (max-width: 1100px) {
+      body {
+        overflow-y: auto;
+      }
+
+      main {
+        grid-template-columns: 1fr;
+        gap: 32px;
+        padding: 28px;
+      }
+
+      .hero {
+        min-height: auto;
+        gap: 64px;
+        padding: 28px 0;
+      }
+
+      .clock {
+        font-size: 78px;
+      }
+
+      .date {
+        font-size: 20px;
+        letter-spacing: 0;
+      }
+
+      .weather-summary {
+        margin-left: 0;
+      }
+
+      .temperature {
+        font-size: 102px;
+      }
+
+      .panel {
+        min-height: 760px;
+      }
+
+      .forecast-section,
+      .view {
+        padding-left: 24px;
+        padding-right: 24px;
+      }
+
+      .forecast {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .metrics {
+        grid-template-columns: 1fr;
+        gap: 32px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="loading" id="loading">Loading local board</div>
+
+  <main>
+    <section class="hero" aria-label="Local information summary">
+      <div class="time-block">
+        <div class="clock" id="clock">--:--</div>
+        <div class="date" id="date">Loading date</div>
+      </div>
+
+      <div></div>
+
+      <div class="weather-summary">
+        <div class="location">
+          <span class="material-symbols-outlined" aria-hidden="true">location_on</span>
+          <span id="location">Sample Location</span>
+        </div>
+        <div class="temperature-row">
+          <div class="temperature" id="temperature">--</div>
+          <div class="unit" id="temperature-unit">&deg;C</div>
+        </div>
+        <div class="condition">
+          <span class="material-symbols-outlined" id="condition-icon" aria-hidden="true">cloud</span>
+          <span id="condition">Loading weather</span>
+        </div>
+      </div>
+    </section>
+
+    <aside class="panel" aria-label="Local information details">
+      <section class="forecast-section" aria-label="Weather forecast">
+        <div class="section-title">
+          <span class="material-symbols-outlined" aria-hidden="true">update</span>
+          <span>Trend forecast</span>
+        </div>
+        <div class="forecast" id="forecast"></div>
+      </section>
+
+      <div class="rotator">
+        <section class="view active" id="view-0" aria-label="Weather details">
+          <div class="metrics">
+            <article class="metric">
+              <div class="metric-label"><span class="material-symbols-outlined" aria-hidden="true">air</span><span>Wind</span></div>
+              <div class="metric-value"><span id="wind">--</span><span class="metric-unit" id="wind-unit"> km/h</span></div>
+            </article>
+            <article class="metric">
+              <div class="metric-label"><span class="material-symbols-outlined" aria-hidden="true">device_thermostat</span><span>Feels like</span></div>
+              <div class="metric-value"><span id="feels-like">--</span><span class="metric-unit" id="feels-like-unit"> &deg;C</span></div>
+            </article>
+            <article class="metric">
+              <div class="metric-label"><span class="material-symbols-outlined" aria-hidden="true">humidity_percentage</span><span>Humidity</span></div>
+              <div class="metric-value"><span id="humidity">--</span><span class="metric-unit">%</span></div>
+            </article>
+            <article class="metric">
+              <div class="metric-label"><span class="material-symbols-outlined" aria-hidden="true">visibility</span><span>Visibility</span></div>
+              <div class="metric-value"><span id="visibility">--</span><span class="metric-unit"> km</span></div>
+            </article>
+          </div>
+        </section>
+
+        <section class="view" id="view-1" aria-label="Daylight and air quality">
+          <div class="metrics">
+            <article class="metric">
+              <div class="metric-label"><span class="material-symbols-outlined" aria-hidden="true">wb_twilight</span><span>Sunrise</span></div>
+              <div class="metric-value" id="sunrise">--:--</div>
+            </article>
+            <article class="metric">
+              <div class="metric-label"><span class="material-symbols-outlined" aria-hidden="true">nights_stay</span><span>Sunset</span></div>
+              <div class="metric-value" id="sunset">--:--</div>
+            </article>
+            <article class="metric">
+              <div class="metric-label"><span class="material-symbols-outlined" aria-hidden="true">eco</span><span>Air quality</span></div>
+              <div class="metric-value" id="air-quality">--</div>
+            </article>
+            <article class="metric">
+              <div class="metric-label"><span class="material-symbols-outlined" aria-hidden="true">light_mode</span><span>UV index</span></div>
+              <div class="metric-value" id="uv-index">--</div>
+            </article>
+          </div>
+        </section>
+
+        <section class="view" id="view-2" aria-label="Headlines">
+          <div class="section-title">
+            <span class="material-symbols-outlined" aria-hidden="true">newspaper</span>
+            <span>Headlines</span>
+          </div>
+          <div class="headlines" id="headlines"></div>
+        </section>
+      </div>
+
+      <div class="dots" aria-hidden="true">
+        <span class="dot active" id="dot-0"></span>
+        <span class="dot" id="dot-1"></span>
+        <span class="dot" id="dot-2"></span>
+      </div>
+    </aside>
+  </main>
+
+  <script>
+    const defaultConfig = {
+      title: "Local Info Board",
+      locationName: "Sample Location",
+      timezone: "Europe/Berlin",
+      locale: "en-GB",
+      fontUrl: "./assets/material-symbols-w300.woff2",
+      backgroundImage: "./assets/weather-bg.webp",
+      coordinates: {
+        latitude: 50.518,
+        longitude: 6.216
+      },
+      units: {
+        temperature: "celsius",
+        windSpeed: "kmh"
+      },
+      features: {
+        weather: true,
+        airQuality: true,
+        news: true
+      },
+      apis: {
+        weatherBaseUrl: "https://api.open-meteo.com/v1/forecast",
+        airQualityBaseUrl: "https://air-quality-api.open-meteo.com/v1/air-quality",
+        newsUrl: "https://www.tagesschau.de/api2u/news"
+      },
+      rotationInterval: 12,
+      refreshInterval: 15,
+      newsUnavailableMessage: "Headlines are currently unavailable.",
+      weatherUnavailableMessage: "Weather is currently unavailable.",
+      airQualityUnavailableMessage: "Unavailable"
+    };
+
+    const weatherCodes = {
+      0: ["Clear sky", "clear_day", "Clear"],
+      1: ["Mainly clear", "partly_cloudy_day", "Fair"],
+      2: ["Partly cloudy", "partly_cloudy_day", "Clouds"],
+      3: ["Overcast", "cloud", "Clouds"],
+      45: ["Fog", "foggy", "Fog"],
+      48: ["Rime fog", "foggy", "Fog"],
+      51: ["Light drizzle", "rainy", "Drizzle"],
+      53: ["Drizzle", "rainy", "Drizzle"],
+      55: ["Dense drizzle", "rainy", "Drizzle"],
+      56: ["Freezing drizzle", "rainy", "Drizzle"],
+      57: ["Dense freezing drizzle", "rainy", "Drizzle"],
+      61: ["Rain", "rainy", "Rain"],
+      63: ["Moderate rain", "rainy", "Rain"],
+      65: ["Heavy rain", "rainy", "Rain"],
+      66: ["Freezing rain", "rainy", "Rain"],
+      67: ["Heavy freezing rain", "rainy", "Rain"],
+      71: ["Light snow", "weather_snowy", "Snow"],
+      73: ["Snow", "weather_snowy", "Snow"],
+      75: ["Heavy snow", "weather_snowy", "Snow"],
+      77: ["Snow grains", "weather_snowy", "Snow"],
+      80: ["Rain showers", "rainy", "Showers"],
+      81: ["Heavy showers", "rainy", "Showers"],
+      82: ["Violent showers", "thunderstorm", "Storm"],
+      85: ["Snow showers", "weather_snowy", "Snow"],
+      86: ["Heavy snow showers", "weather_snowy", "Snow"],
+      95: ["Thunderstorm", "thunderstorm", "Storm"],
+      96: ["Thunderstorm with hail", "thunderstorm", "Storm"],
+      99: ["Severe thunderstorm", "thunderstorm", "Storm"]
+    };
+
+    let config = defaultConfig;
+    let currentView = 0;
+    let rotationTimer = null;
+
+    function text(id, value) {
+      const node = document.getElementById(id);
+      if (node) node.textContent = value;
+    }
+
+    function weatherLabel(code) {
+      return weatherCodes[code] || ["Changing conditions", "routine", "Mixed"];
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+    }
+
+    function temperatureLabel() {
+      return config.units.temperature === "fahrenheit" ? "\u00B0F" : "\u00B0C";
+    }
+
+    function windSpeedLabel() {
+      const labels = { kmh: "km/h", ms: "m/s", mph: "mph", kn: "kn" };
+      return labels[config.units.windSpeed] || "km/h";
+    }
+
+    function injectFont() {
+      const url = (config.fontUrl || "").replace(/["'()]/g, "");
+      if (!url) return;
+      const style = document.createElement("style");
+      style.textContent = '@font-face { font-family: "Material Symbols Outlined"; font-style: normal; font-weight: 300; src: url("' + url + '") format("woff2"); }';
+      document.head.appendChild(style);
+    }
+
+    function formatTime(value) {
+      return new Intl.DateTimeFormat(config.locale, {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false,
+        timeZone: config.timezone
+      }).format(new Date(value));
+    }
+
+    function formatDate(value) {
+      return new Intl.DateTimeFormat(config.locale, {
+        weekday: "long",
+        month: "long",
+        day: "numeric",
+        timeZone: config.timezone
+      }).format(value);
+    }
+
+    function updateClock() {
+      const now = new Date();
+      text("clock", new Intl.DateTimeFormat(config.locale, {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false,
+        timeZone: config.timezone
+      }).format(now));
+      text("date", formatDate(now));
+    }
+
+    async function loadConfig() {
+      try {
+        const response = await fetch("./config.json", { cache: "no-store" });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const loaded = await response.json();
+        return {
+          ...defaultConfig,
+          ...loaded,
+          coordinates: { ...defaultConfig.coordinates, ...loaded.coordinates },
+          units: { ...defaultConfig.units, ...loaded.units },
+          features: { ...defaultConfig.features, ...loaded.features },
+          apis: { ...defaultConfig.apis, ...loaded.apis }
+        };
+      } catch (error) {
+        console.warn("Using built-in fallback config:", error);
+        return defaultConfig;
+      }
+    }
+
+    function applyBackground() {
+      if (!config.backgroundImage) return;
+      document.body.style.backgroundImage = [
+        "linear-gradient(90deg, rgba(5, 10, 20, 0.9) 0%, rgba(5, 10, 20, 0.55) 48%, rgba(5, 10, 20, 0.22) 100%)",
+        `url("${config.backgroundImage}")`
+      ].join(", ");
+    }
+
+    function weatherUrl() {
+      const params = new URLSearchParams({
+        latitude: config.coordinates.latitude,
+        longitude: config.coordinates.longitude,
+        current: "temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,visibility",
+        hourly: "temperature_2m,weather_code",
+        daily: "sunrise,sunset,uv_index_max",
+        temperature_unit: config.units.temperature,
+        wind_speed_unit: config.units.windSpeed,
+        timezone: config.timezone
+      });
+      return `${config.apis.weatherBaseUrl}?${params.toString()}`;
+    }
+
+    function airQualityUrl() {
+      const params = new URLSearchParams({
+        latitude: config.coordinates.latitude,
+        longitude: config.coordinates.longitude,
+        current: "european_aqi",
+        timezone: config.timezone
+      });
+      return `${config.apis.airQualityBaseUrl}?${params.toString()}`;
+    }
+
+    function renderForecastCards(cards) {
+      if (!cards || !cards.length) {
+        renderForecastStatus("Forecast is currently unavailable.");
+        return;
+      }
+
+      const items = cards.slice(0, 5).map((card) => {
+        const time = card.time instanceof Date ? formatTime(card.time) : escapeHtml(card.time);
+        const icon = escapeHtml(card.icon || "cloud");
+        const temperature = Number.isFinite(Number(card.temperature)) ? Math.round(Number(card.temperature)) : "--";
+        return `
+          <article class="forecast-card">
+            <div class="forecast-time">${time}</div>
+            <span class="material-symbols-outlined forecast-icon" aria-hidden="true">${icon}</span>
+            <div class="forecast-temp">${temperature}&deg;</div>
+          </article>
+        `;
+      });
+
+      document.getElementById("forecast").innerHTML = items.join("");
+    }
+
+    function renderForecastStatus(message) {
+      document.getElementById("forecast").innerHTML = `
+        <div class="forecast-status">${escapeHtml(message)}</div>
+      `;
+    }
+
+    function renderForecast(hourly) {
+      const now = new Date();
+      let index = hourly.time.findIndex((value) => new Date(value) >= now);
+      if (index < 0) index = 0;
+
+      const cards = [];
+      for (let offset = 1; offset <= 5; offset += 1) {
+        const nextIndex = index + offset;
+        if (nextIndex >= hourly.time.length) break;
+        const time = new Date(hourly.time[nextIndex]);
+        const condition = weatherLabel(hourly.weather_code[nextIndex]);
+        cards.push({
+          time,
+          icon: condition[1],
+          temperature: hourly.temperature_2m[nextIndex]
+        });
+      }
+
+      renderForecastCards(cards);
+    }
+
+    function renderWeatherUnavailable(message = config.weatherUnavailableMessage) {
+      text("temperature", "--");
+      text("condition", message);
+      text("condition-icon", "info");
+      text("wind", "--");
+      text("feels-like", "--");
+      text("humidity", "--");
+      text("visibility", "--");
+      text("sunrise", "--:--");
+      text("sunset", "--:--");
+      text("uv-index", "--");
+      renderForecastStatus("Forecast is currently unavailable.");
+    }
+
+    function renderAirQualityUnavailable() {
+      text("air-quality", config.airQualityUnavailableMessage);
+    }
+
+    async function fetchWeather() {
+      if (!config.features.weather) {
+        renderWeatherUnavailable("Weather is disabled.");
+        return;
+      }
+      const response = await fetch(weatherUrl());
+      if (!response.ok) throw new Error(`Weather HTTP ${response.status}`);
+      const data = await response.json();
+      if (!data.current || !data.hourly || !data.daily) throw new Error("Weather payload is missing required data");
+      const current = data.current;
+      const condition = weatherLabel(current.weather_code);
+
+      text("temperature", Math.round(current.temperature_2m));
+      text("condition", condition[0]);
+      text("condition-icon", condition[1]);
+      text("wind", Math.round(current.wind_speed_10m));
+      text("feels-like", Math.round(current.apparent_temperature));
+      text("humidity", current.relative_humidity_2m);
+      text("visibility", (current.visibility / 1000).toFixed(1));
+      text("sunrise", formatTime(data.daily.sunrise[0]));
+      text("sunset", formatTime(data.daily.sunset[0]));
+      text("uv-index", data.daily.uv_index_max[0].toFixed(1));
+
+      renderForecast(data.hourly);
+    }
+
+    async function fetchAirQuality() {
+      if (!config.features.airQuality) {
+        renderAirQualityUnavailable();
+        return;
+      }
+      const response = await fetch(airQualityUrl());
+      if (!response.ok) throw new Error(`Air quality HTTP ${response.status}`);
+      const data = await response.json();
+      if (!data.current || typeof data.current.european_aqi === "undefined") throw new Error("Air quality payload is missing required data");
+      const aqi = data.current.european_aqi;
+      let label = "Good";
+      if (aqi > 40) label = "Moderate";
+      if (aqi > 80) label = "Poor";
+      text("air-quality", `${aqi} / ${label}`);
+    }
+
+    function normalizeHeadlines(data) {
+      if (!data) return [];
+
+      const source = Array.isArray(data)
+        ? data
+        : data.news || data.items || data.articles || data.results || [];
+
+      return source
+        .map((item) => {
+          if (typeof item === "string") return item;
+          return item.title || item.headline || item.name || item.text || "";
+        })
+        .filter(Boolean);
+    }
+
+    function renderHeadlines(items) {
+      const headlines = items.slice(0, 4).map((item) => {
+        const title = typeof item === "string" ? item : item.title;
+        return `
+          <article class="headline">
+            <span class="material-symbols-outlined headline-marker" aria-hidden="true">notes</span>
+            <div class="headline-text">${escapeHtml(title)}</div>
+          </article>
+        `;
+      });
+      document.getElementById("headlines").innerHTML = headlines.join("");
+    }
+
+    function renderNewsStatus(message) {
+      document.getElementById("headlines").innerHTML = `
+        <article class="headline status">
+          <span class="material-symbols-outlined headline-marker" aria-hidden="true">info</span>
+          <div class="headline-text">${escapeHtml(message)}</div>
+        </article>
+      `;
+    }
+
+    async function fetchNews() {
+      if (!config.features.news) {
+        renderNewsStatus("Headlines are disabled.");
+        return;
+      }
+
+      try {
+        const response = await fetch(config.apis.newsUrl);
+        if (!response.ok) throw new Error(`News HTTP ${response.status}`);
+        const data = await response.json();
+        const items = normalizeHeadlines(data).slice(0, 4);
+        if (items.length) {
+          renderHeadlines(items);
+        } else {
+          renderNewsStatus(config.newsUnavailableMessage);
+        }
+      } catch (error) {
+        console.warn("Headlines unavailable:", error);
+        renderNewsStatus(config.newsUnavailableMessage);
+      }
+    }
+
+    function rotatePanels() {
+      document.getElementById(`view-${currentView}`).classList.remove("active");
+      document.getElementById(`dot-${currentView}`).classList.remove("active");
+      currentView = (currentView + 1) % 3;
+      document.getElementById(`view-${currentView}`).classList.add("active");
+      document.getElementById(`dot-${currentView}`).classList.add("active");
+    }
+
+    function startRotation() {
+      if (rotationTimer) clearInterval(rotationTimer);
+      rotationTimer = setInterval(rotatePanels, (config.rotationInterval || 12) * 1000);
+    }
+
+    function refreshData() {
+      fetchWeather().catch((e) => console.warn("Weather refresh failed:", e));
+      fetchAirQuality().catch((e) => console.warn("AQ refresh failed:", e));
+      fetchNews();
+    }
+
+    function handleVisibilityChange() {
+      if (document.hidden) {
+        if (rotationTimer) {
+          clearInterval(rotationTimer);
+          rotationTimer = null;
+        }
+      } else {
+        updateClock();
+        refreshData();
+        startRotation();
+      }
+    }
+
+    async function init() {
+      config = await loadConfig();
+      injectFont();
+      document.documentElement.lang = config.locale.slice(0, 2);
+      document.title = config.title;
+      applyBackground();
+      text("location", config.locationName);
+      text("temperature-unit", temperatureLabel());
+      text("wind-unit", " " + windSpeedLabel());
+      text("feels-like-unit", " " + temperatureLabel());
+      updateClock();
+      setInterval(updateClock, 1000);
+
+      const tasks = [
+        fetchWeather().catch((error) => {
+          console.warn("Weather unavailable:", error);
+          renderWeatherUnavailable();
+        }),
+        fetchAirQuality().catch((error) => {
+          console.warn("Air quality unavailable:", error);
+          renderAirQualityUnavailable();
+        }),
+        fetchNews()
+      ];
+
+      await Promise.all(tasks);
+      document.getElementById("loading").classList.add("hidden");
+      startRotation();
+      setInterval(refreshData, (config.refreshInterval || 15) * 60 * 1000);
+    }
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    init();
+  </script>
+</body>
+</html>

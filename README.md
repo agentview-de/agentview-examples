@@ -1,8 +1,8 @@
 # AgentView Examples
 
-Copyable examples for building browser-based AgentView displays.
+Copyable examples for building browser-based agentView displays.
 
-AgentView delivers HTML, URLs, or payload-based content to displays such as TVs, tablets, monitors, and kiosk screens. These examples are meant to be small, readable starting points that you can preview in a browser and adapt for your own screen.
+agentView delivers HTML or URLs to smart displays such as TVs, tablets, monitors, and kiosk screens. These examples are meant to be small, readable starting points that you can preview in a browser and adapt for your own screen.
 
 ## Examples
 
@@ -45,7 +45,7 @@ Each example is a standalone display that should be easy to inspect and copy.
 
 Use the REST API when you want custom automation or server-to-server delivery. Start with the developer docs at https://agentview.de/developers.html.
 
-## AgentView links
+## agentView links
 
 - Dashboard: https://agentview.de
 - Display pairing page: https://display.agentView.de
@@ -57,7 +57,7 @@ Use the REST API when you want custom automation or server-to-server delivery. S
 
 ## Content format
 
-Most examples in this repository are single-file HTML displays. AgentView renders uploaded HTML fullscreen on the display. Examples may include inline CSS and JavaScript, and some examples may load external resources such as fonts, images, scripts, or public APIs.
+Most examples in this repository are single-file HTML displays. agentView renders uploaded HTML fullscreen on the display. Examples may include inline CSS and JavaScript, and some examples may load external resources such as fonts, images, scripts, or public APIs.
 
 ## Example guidelines
 

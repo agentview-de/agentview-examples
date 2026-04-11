@@ -1,4 +1,4 @@
-# AgentView Examples
+# agentView Examples
 
 Copyable examples for building browser-based agentView displays.
 

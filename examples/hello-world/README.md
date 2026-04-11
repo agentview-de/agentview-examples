@@ -6,6 +6,8 @@ A polished starter display for AgentView. It uses one fullscreen HTML file with 
 
 Open `index.html` in your browser.
 
+![Hello World example preview](screenshot.png)
+
 ## Send to AgentView
 
 Follow the setup and send instructions in the [repository README](../../README.md).

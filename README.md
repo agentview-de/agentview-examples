@@ -10,6 +10,10 @@ agentView delivers HTML or URLs to smart displays such as TVs, tablets, monitors
 | --- | --- |
 | [Hello World](examples/hello-world/) | A polished starter display with a live clock and no build step. |
 
+## Preview
+
+![Hello World example preview](examples/hello-world/screenshot.png)
+
 ## Set up your first display
 
 1. Open https://display.agentView.de on your target screen, such as a TV, tablet, or monitor.

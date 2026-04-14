@@ -1,0 +1,67 @@
+{
+  "title": "Café Menu Board",
+  "restaurantName": "Bistro Olivia",
+  "tagline": "Handmade with love since 2018",
+  "locale": "en-GB",
+  "currency": "€",
+  "fontUrl": "./assets/material-symbols-w300.woff2",
+  "heroImage": "./assets/hero.png",
+  "dataUrl": "",
+  "refreshInterval": 120,
+  "dailySpecial": {
+    "title": "Chef's Special",
+    "name": "Truffle Mushroom Risotto",
+    "description": "Arborio rice, mixed forest mushrooms, black truffle oil, aged parmesan",
+    "price": 16.90
+  },
+  "categories": [
+    {
+      "name": "Starters",
+      "icon": "restaurant",
+      "items": [
+        { "name": "Bruschetta Trio", "description": "Tomato basil, mushroom cream, olive tapenade", "price": 9.50 },
+        { "name": "Burrata Salad", "description": "Creamy burrata, pesto, heirloom tomatoes, pine nuts", "price": 12.80 },
+        { "name": "Seasonal Soup", "description": "Daily selection, served with sourdough bread", "price": 7.90 }
+      ]
+    },
+    {
+      "name": "Mains",
+      "icon": "lunch_dining",
+      "items": [
+        { "name": "Grilled Sea Bass", "description": "Lemon herb crust, roasted vegetables, saffron jus", "price": 24.50 },
+        { "name": "Beef Tenderloin", "description": "200g grass-fed, truffle mash, red wine sauce", "price": 28.90 },
+        { "name": "Wild Mushroom Pasta", "description": "Fresh tagliatelle, porcini, cream, parmesan", "price": 17.50, "tags": ["vegetarian"] },
+        { "name": "Roasted Chicken", "description": "Free-range, rosemary potatoes, seasonal greens", "price": 19.80 }
+      ]
+    },
+    {
+      "name": "Drinks",
+      "icon": "local_cafe",
+      "items": [
+        { "name": "Espresso", "price": 2.80 },
+        { "name": "Flat White", "price": 4.20 },
+        { "name": "Fresh Lemonade", "description": "Mint, ginger, honey", "price": 5.50 },
+        { "name": "House Wine", "description": "Red or white, 0.2 l", "price": 6.90 },
+        { "name": "Craft Beer", "description": "Local brewery selection, 0.33 l", "price": 5.80 }
+      ]
+    },
+    {
+      "name": "Desserts",
+      "icon": "cake",
+      "items": [
+        { "name": "Tiramisu", "description": "Classic recipe, mascarpone, amaretto", "price": 8.50 },
+        { "name": "Panna Cotta", "description": "Vanilla bean, seasonal berry compote", "price": 7.90 },
+        { "name": "Affogato", "description": "Vanilla gelato, double espresso", "price": 6.50 }
+      ]
+    }
+  ],
+  "allergenNote": "Please inform our staff about any allergies or dietary requirements.",
+  "hours": {
+    "line1": "Mon – Fri  11:30 – 22:00",
+    "line2": "Sat – Sun  10:00 – 23:00"
+  },
+  "wifi": {
+    "network": "Olivia-Guest",
+    "password": "buonappetito"
+  }
+}

@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%231a1714'/%3E%3Ctext x='16' y='23' text-anchor='middle' font-size='20'%3E🍽%3C/text%3E%3C/svg%3E">
+  <title>Café Menu Board</title>
+  <style>
+    @font-face {
+      font-family: "Material Symbols Outlined";
+      font-style: normal;
+      font-weight: 300;
+      src: url("./assets/material-symbols-w300.woff2") format("woff2");
+    }
+
+    :root {
+      --bg: #1a1714;
+      --surface: #232019;
+      --surface-light: #2e2a23;
+      --surface-glow: #3a342b;
+      --text: #f4efe6;
+      --text-secondary: rgba(244, 239, 230, 0.65);
+      --text-quiet: rgba(244, 239, 230, 0.4);
+      --accent: #d4a855;
+      --accent-soft: rgba(212, 168, 85, 0.15);
+      --accent-border: rgba(212, 168, 85, 0.3);
+      --warm: #c06e42;
+      --green: #7aab6d;
+      --line: rgba(212, 168, 85, 0.12);
+      --fs-xs: 12px;
+      --fs-sm: 14px;
+      --fs-base: 16px;
+      --fs-md: 18px;
+      --fs-lg: 24px;
+      --fs-xl: 36px;
+      --fs-hero: 52px;
+      --fs-price: 20px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      width: 100vw;
+      min-height: 100vh;
+      overflow: hidden;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Georgia, "Times New Roman", serif;
+    }
+
+    .material-symbols-outlined {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-family: "Material Symbols Outlined";
+      font-size: 24px;
+      font-style: normal;
+      font-weight: 300;
+      line-height: 1;
+      text-transform: none;
+      white-space: nowrap;
+      font-variation-settings: "FILL" 0, "wght" 300, "GRAD" 0, "opsz" 24;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ─── Layout ─── */
+    main {
+      width: 100vw;
+      height: 100vh;
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      grid-template-rows: 1fr;
+    }
+
+    /* ─── Sidebar ─── */
+    .sidebar {
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      gap: 0;
+      background:
+        linear-gradient(180deg, rgba(26,23,20,0) 0%, var(--bg) 100%),
+        linear-gradient(180deg, var(--surface) 0%, var(--bg) 100%);
+      border-right: 1px solid var(--line);
+      overflow: hidden;
+    }
+
+    .hero {
+      position: relative;
+      height: 260px;
+      overflow: hidden;
+    }
+
+    .hero img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      filter: brightness(0.7);
+    }
+
+    .hero-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+        180deg,
+        rgba(26, 23, 20, 0) 30%,
+        rgba(26, 23, 20, 0.85) 75%,
+        var(--bg) 100%
+      );
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 28px 26px;
+    }
+
+    .restaurant-name {
+      font-size: var(--fs-xl);
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      line-height: 1.1;
+      color: var(--text);
+    }
+
+    .restaurant-tagline {
+      margin-top: 8px;
+      font-size: var(--fs-sm);
+      font-style: italic;
+      color: var(--accent);
+      letter-spacing: 0.04em;
+    }
+
+    /* ─── Daily Special ─── */
+    .special {
+      padding: 26px;
+      display: grid;
+      gap: 18px;
+      align-content: start;
+    }
+
+    .special-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      border: 1px solid var(--accent-border);
+      border-radius: 6px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-size: var(--fs-xs);
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      font-family: Arial, Helvetica, sans-serif;
+      justify-self: start;
+    }
+
+    .special-badge .material-symbols-outlined {
+      font-size: 18px;
+      color: var(--accent);
+    }
+
+    .special-name {
+      font-size: var(--fs-lg);
+      font-weight: 700;
+      line-height: 1.2;
+      color: var(--text);
+    }
+
+    .special-desc {
+      font-size: var(--fs-sm);
+      line-height: 1.55;
+      color: var(--text-secondary);
+      font-style: italic;
+    }
+
+    .special-price {
+      font-size: var(--fs-lg);
+      font-weight: 700;
+      color: var(--accent);
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* ─── Sidebar footer ─── */
+    .sidebar-footer {
+      padding: 22px 26px;
+      border-top: 1px solid var(--line);
+      display: grid;
+      gap: 14px;
+    }
+
+    .info-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--text-secondary);
+      font-size: var(--fs-xs);
+      font-family: Arial, Helvetica, sans-serif;
+      line-height: 1.4;
+    }
+
+    .info-row .material-symbols-outlined {
+      font-size: 20px;
+      color: var(--accent);
+      flex-shrink: 0;
+    }
+
+    .allergen-note {
+      font-size: var(--fs-xs);
+      font-style: italic;
+      color: var(--text-quiet);
+      line-height: 1.4;
+      padding-top: 6px;
+      border-top: 1px solid var(--line);
+    }
+
+    /* ─── Menu area ─── */
+    .menu-area {
+      display: grid;
+      grid-template-rows: auto 1fr;
+      gap: 0;
+      overflow: hidden;
+      padding: 36px 40px 32px;
+    }
+
+    .menu-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-bottom: 22px;
+      border-bottom: 1px solid var(--line);
+      margin-bottom: 28px;
+    }
+
+    .menu-heading {
+      font-size: var(--fs-lg);
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--text);
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    .menu-clock {
+      font-size: var(--fs-md);
+      font-weight: 700;
+      color: var(--text-quiet);
+      font-variant-numeric: tabular-nums;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    .menu-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 32px 40px;
+      align-content: start;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    /* ─── Category ─── */
+    .category {
+      display: grid;
+      gap: 0;
+      align-content: start;
+    }
+
+    .category-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding-bottom: 14px;
+      border-bottom: 2px solid var(--accent);
+      margin-bottom: 4px;
+    }
+
+    .category-header .material-symbols-outlined {
+      font-size: 22px;
+      color: var(--accent);
+    }
+
+    .category-name {
+      font-size: var(--fs-md);
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--accent);
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    .category-count {
+      margin-left: auto;
+      font-size: var(--fs-xs);
+      color: var(--text-quiet);
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    /* ─── Menu item ─── */
+    .menu-item {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 4px 16px;
+      padding: 14px 0;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .menu-item:last-child {
+      border-bottom: 0;
+    }
+
+    .item-name {
+      font-size: var(--fs-base);
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1.3;
+    }
+
+    .item-tags {
+      display: inline-flex;
+      gap: 6px;
+      margin-left: 8px;
+    }
+
+    .item-tag {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px 8px;
+      border-radius: 4px;
+      background: rgba(122, 171, 109, 0.15);
+      color: var(--green);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      font-family: Arial, Helvetica, sans-serif;
+      vertical-align: middle;
+    }
+
+    .item-price {
+      font-size: var(--fs-price);
+      font-weight: 700;
+      color: var(--accent);
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+      align-self: start;
+      line-height: 1.3;
+    }
+
+    .item-desc {
+      grid-column: 1 / -1;
+      font-size: var(--fs-sm);
+      font-style: italic;
+      color: var(--text-secondary);
+      line-height: 1.45;
+    }
+
+    /* ─── Loading ─── */
+    .loading {
+      position: fixed;
+      inset: 0;
+      z-index: 20;
+      display: grid;
+      place-items: center;
+      background: var(--bg);
+      color: var(--text-secondary);
+      font-size: var(--fs-md);
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      font-family: Arial, Helvetica, sans-serif;
+      transition: opacity 0.4s ease, visibility 0.4s ease;
+    }
+
+    .loading.hidden {
+      opacity: 0;
+      visibility: hidden;
+    }
+
+    /* ─── Responsive: large screens ─── */
+    @media (min-width: 1800px) {
+      main {
+        grid-template-columns: 380px 1fr;
+      }
+
+      .hero {
+        height: 300px;
+      }
+
+      :root {
+        --fs-xs: 13px;
+        --fs-sm: 15px;
+        --fs-base: 17px;
+        --fs-md: 20px;
+        --fs-lg: 28px;
+        --fs-xl: 42px;
+        --fs-price: 22px;
+      }
+    }
+
+    /* ─── Responsive: narrow ─── */
+    @media (max-width: 1100px) {
+      main {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto 1fr;
+        height: auto;
+        min-height: 100vh;
+      }
+
+      body {
+        overflow-y: auto;
+      }
+
+      .sidebar {
+        grid-template-rows: auto auto;
+        grid-template-columns: 1fr 1fr;
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .hero {
+        height: 220px;
+      }
+
+      .special {
+        padding: 22px;
+      }
+
+      .sidebar-footer {
+        grid-column: 1 / -1;
+        border-top: 1px solid var(--line);
+      }
+
+      .menu-area {
+        padding: 26px;
+      }
+    }
+
+    @media (max-width: 700px) {
+      .sidebar {
+        grid-template-columns: 1fr;
+      }
+
+      .menu-grid {
+        grid-template-columns: 1fr;
+        gap: 28px;
+      }
+
+      .menu-area {
+        padding: 20px;
+      }
+
+      :root {
+        --fs-xl: 28px;
+        --fs-lg: 22px;
+        --fs-md: 17px;
+        --fs-price: 18px;
+      }
+    }
+
+    /* ─── Short viewport ─── */
+    @media (max-height: 800px) {
+      :root {
+        --fs-xs: 11px;
+        --fs-sm: 13px;
+        --fs-base: 15px;
+        --fs-md: 17px;
+        --fs-lg: 22px;
+        --fs-xl: 32px;
+        --fs-price: 18px;
+      }
+
+      .hero {
+        height: 200px;
+      }
+
+      .special {
+        gap: 12px;
+        padding: 18px 22px;
+      }
+
+      .menu-area {
+        padding: 24px 32px 20px;
+      }
+
+      .menu-header {
+        padding-bottom: 14px;
+        margin-bottom: 18px;
+      }
+
+      .menu-grid {
+        gap: 22px 36px;
+      }
+
+      .menu-item {
+        padding: 10px 0;
+      }
+
+      .category-header {
+        padding-bottom: 10px;
+      }
+
+      .sidebar-footer {
+        padding: 14px 22px;
+        gap: 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="loading" id="loading">Preparing your menu</div>
+
+  <main>
+    <aside class="sidebar">
+      <div class="hero">
+        <img id="hero-image" src="./assets/hero.png" alt="Restaurant ambiance">
+        <div class="hero-overlay">
+          <div class="restaurant-name" id="restaurant-name">Bistro Olivia</div>
+          <div class="restaurant-tagline" id="restaurant-tagline">Handmade with love since 2018</div>
+        </div>
+      </div>
+
+      <div class="special" id="special-section">
+        <div class="special-badge">
+          <span class="material-symbols-outlined" aria-hidden="true">auto_awesome</span>
+          <span id="special-badge-text">Chef's Special</span>
+        </div>
+        <div class="special-name" id="special-name">Truffle Mushroom Risotto</div>
+        <div class="special-desc" id="special-desc">Arborio rice, mixed forest mushrooms, black truffle oil, aged parmesan</div>
+        <div class="special-price" id="special-price">€ 16.90</div>
+      </div>
+
+      <div class="sidebar-footer" id="sidebar-footer">
+        <div class="info-row">
+          <span class="material-symbols-outlined" aria-hidden="true">schedule</span>
+          <span id="hours-line1">Mon – Fri  11:30 – 22:00</span>
+        </div>
+        <div class="info-row">
+          <span class="material-symbols-outlined" aria-hidden="true">schedule</span>
+          <span id="hours-line2">Sat – Sun  10:00 – 23:00</span>
+        </div>
+        <div class="info-row" id="wifi-row">
+          <span class="material-symbols-outlined" aria-hidden="true">wifi</span>
+          <span id="wifi-info">Olivia-Guest · buonappetito</span>
+        </div>
+        <div class="allergen-note" id="allergen-note">Please inform our staff about any allergies or dietary requirements.</div>
+      </div>
+    </aside>
+
+    <div class="menu-area">
+      <div class="menu-header">
+        <div class="menu-heading">Menu</div>
+        <div class="menu-clock" id="clock">--:--</div>
+      </div>
+      <div class="menu-grid" id="menu-grid"></div>
+    </div>
+  </main>
+
+  <script>
+    const defaultConfig = {
+      title: "Café Menu Board",
+      restaurantName: "Bistro Olivia",
+      tagline: "Handmade with love since 2018",
+      locale: "en-GB",
+      currency: "€",
+      fontUrl: "./assets/material-symbols-w300.woff2",
+      heroImage: "./assets/hero.png",
+      dataUrl: "",
+      refreshInterval: 120,
+      dailySpecial: {
+        title: "Chef's Special",
+        name: "Truffle Mushroom Risotto",
+        description: "Arborio rice, mixed forest mushrooms, black truffle oil, aged parmesan",
+        price: 16.90
+      },
+      categories: [
+        {
+          name: "Starters",
+          icon: "restaurant",
+          items: [
+            { name: "Bruschetta Trio", description: "Tomato basil, mushroom cream, olive tapenade", price: 9.50 },
+            { name: "Burrata Salad", description: "Creamy burrata, pesto, heirloom tomatoes, pine nuts", price: 12.80 },
+            { name: "Seasonal Soup", description: "Daily selection, served with sourdough bread", price: 7.90 }
+          ]
+        },
+        {
+          name: "Mains",
+          icon: "lunch_dining",
+          items: [
+            { name: "Grilled Sea Bass", description: "Lemon herb crust, roasted vegetables, saffron jus", price: 24.50 },
+            { name: "Beef Tenderloin", description: "200g grass-fed, truffle mash, red wine sauce", price: 28.90 },
+            { name: "Wild Mushroom Pasta", description: "Fresh tagliatelle, porcini, cream, parmesan", price: 17.50, tags: ["vegetarian"] },
+            { name: "Roasted Chicken", description: "Free-range, rosemary potatoes, seasonal greens", price: 19.80 }
+          ]
+        },
+        {
+          name: "Drinks",
+          icon: "local_cafe",
+          items: [
+            { name: "Espresso", price: 2.80 },
+            { name: "Flat White", price: 4.20 },
+            { name: "Fresh Lemonade", description: "Mint, ginger, honey", price: 5.50 },
+            { name: "House Wine", description: "Red or white, 0.2 l", price: 6.90 },
+            { name: "Craft Beer", description: "Local brewery selection, 0.33 l", price: 5.80 }
+          ]
+        },
+        {
+          name: "Desserts",
+          icon: "cake",
+          items: [
+            { name: "Tiramisu", description: "Classic recipe, mascarpone, amaretto", price: 8.50 },
+            { name: "Panna Cotta", description: "Vanilla bean, seasonal berry compote", price: 7.90 },
+            { name: "Affogato", description: "Vanilla gelato, double espresso", price: 6.50 }
+          ]
+        }
+      ],
+      allergenNote: "Please inform our staff about any allergies or dietary requirements.",
+      hours: {
+        line1: "Mon – Fri  11:30 – 22:00",
+        line2: "Sat – Sun  10:00 – 23:00"
+      },
+      wifi: {
+        network: "Olivia-Guest",
+        password: "buonappetito"
+      }
+    };
+
+    let config = defaultConfig;
+
+    function byId(id) { return document.getElementById(id); }
+    function text(id, value) { const n = byId(id); if (n) n.textContent = value; }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+    }
+
+    function mergeConfig(base, update) {
+      const next = { ...base, ...update };
+      next.dailySpecial = { ...base.dailySpecial, ...(update.dailySpecial || {}) };
+      next.hours = { ...base.hours, ...(update.hours || {}) };
+      next.wifi = { ...base.wifi, ...(update.wifi || {}) };
+      next.categories = update.categories || base.categories;
+      return next;
+    }
+
+    function formatPrice(value) {
+      const n = Number(value);
+      if (!Number.isFinite(n)) return "--";
+      return config.currency + " " + n.toFixed(2);
+    }
+
+    async function fetchJson(url) {
+      const r = await fetch(url, { cache: "no-store" });
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      return r.json();
+    }
+
+    async function loadConfig() {
+      let next = defaultConfig;
+      try {
+        const loaded = await fetchJson("./config.json");
+        next = mergeConfig(next, loaded);
+      } catch (e) {
+        console.warn("Using built-in config:", e);
+      }
+      return next;
+    }
+
+    async function loadLiveData() {
+      if (!config.dataUrl) return;
+      try {
+        const live = await fetchJson(config.dataUrl);
+        config = mergeConfig(config, live);
+        render();
+      } catch (e) {
+        console.warn("Live data unavailable:", e);
+      }
+    }
+
+    function updateClock() {
+      const now = new Date();
+      text("clock", new Intl.DateTimeFormat(config.locale, {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false
+      }).format(now));
+    }
+
+    function renderBranding() {
+      document.title = config.title || defaultConfig.title;
+      text("restaurant-name", config.restaurantName || defaultConfig.restaurantName);
+      text("restaurant-tagline", config.tagline || defaultConfig.tagline);
+      const hero = byId("hero-image");
+      if (hero && config.heroImage) hero.src = config.heroImage;
+    }
+
+    function renderSpecial() {
+      const special = config.dailySpecial || {};
+      text("special-badge-text", special.title || "Chef's Special");
+      text("special-name", special.name || "");
+      text("special-desc", special.description || "");
+      text("special-price", formatPrice(special.price));
+    }
+
+    function renderFooter() {
+      const hours = config.hours || {};
+      text("hours-line1", hours.line1 || "");
+      text("hours-line2", hours.line2 || "");
+
+      const wifi = config.wifi || {};
+      if (wifi.network) {
+        text("wifi-info", wifi.network + (wifi.password ? " · " + wifi.password : ""));
+        byId("wifi-row").style.display = "";
+      } else {
+        byId("wifi-row").style.display = "none";
+      }
+
+      text("allergen-note", config.allergenNote || "");
+    }
+
+    function renderMenu() {
+      const categories = config.categories || [];
+      byId("menu-grid").innerHTML = categories.map((cat) => {
+        const items = (cat.items || []).map((item) => {
+          const tags = (item.tags || []).map((t) =>
+            `<span class="item-tag">${escapeHtml(t)}</span>`
+          ).join("");
+          const tagHtml = tags ? `<span class="item-tags">${tags}</span>` : "";
+          const descHtml = item.description
+            ? `<div class="item-desc">${escapeHtml(item.description)}</div>`
+            : "";
+          return `
+            <article class="menu-item">
+              <div class="item-name">${escapeHtml(item.name || "Item")}${tagHtml}</div>
+              <div class="item-price">${formatPrice(item.price)}</div>
+              ${descHtml}
+            </article>`;
+        }).join("");
+
+        const count = (cat.items || []).length;
+        return `
+          <section class="category">
+            <div class="category-header">
+              <span class="material-symbols-outlined" aria-hidden="true">${escapeHtml(cat.icon || "restaurant_menu")}</span>
+              <div class="category-name">${escapeHtml(cat.name || "Category")}</div>
+              <div class="category-count">${count} ${count === 1 ? "item" : "items"}</div>
+            </div>
+            ${items}
+          </section>`;
+      }).join("");
+    }
+
+    function render() {
+      renderBranding();
+      renderSpecial();
+      renderFooter();
+      renderMenu();
+      updateClock();
+    }
+
+    async function init() {
+      config = await loadConfig();
+      render();
+      await loadLiveData();
+      byId("loading").classList.add("hidden");
+      setInterval(updateClock, 1000);
+      setInterval(loadLiveData, Math.max(30, Number(config.refreshInterval || 120)) * 1000);
+    }
+
+    init();
+  </script>
+</body>
+</html>

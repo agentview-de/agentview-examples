@@ -4,7 +4,7 @@ A polished starter display for AgentView. It uses one fullscreen HTML file with 
 
 ## Preview
 
-Open `index.html` in your browser.
+Open `display.html` in your browser.
 
 ![Hello World example preview](screenshot.png)
 
@@ -14,4 +14,6 @@ Follow the setup and send instructions in the [repository README](../../README.m
 
 ## Customize
 
-Edit `index.html` and change the headline, message, colors, or layout. No build step is required.
+> **Tip:** The easiest way to customize this display is with an AI agent connected via [MCP](https://agentview.de/mcp). Share the example files with the agent, describe what you want to change, and the agent will adapt and send it to your display.
+
+Edit `display.html` and change the headline, message, colors, or layout. No build step is required.

@@ -10,6 +10,8 @@ agentView delivers HTML or URLs to smart displays such as TVs, tablets, monitors
 | --- | --- |
 | [Hello World](examples/hello-world/) | A polished starter display with a live clock and no build step. |
 | [Local Info Board](examples/local-info-board/) | A configurable local dashboard with weather, air quality, daylight data, and headlines. |
+| [Smart Home Wall Dashboard](examples/smart-home-wall-dashboard/) | A wall-tablet dashboard for weather, calendar, energy, room climate, devices, and security. |
+| [Café Menu Board](examples/cafe-menu-board/) | A digital menu board for restaurants and cafés with categories, prices, daily special, and branding. |
 
 ## Featured preview
 
@@ -30,7 +32,7 @@ More screenshots live in the individual example folders.
 Each example is a standalone display that should be easy to inspect and copy.
 
 1. Open the example folder.
-2. Preview `index.html` in your browser.
+2. Preview `display.html` in your browser.
 3. Customize the copy, layout, colors, and data for your own use case.
 
 ### Send with the dashboard
@@ -39,7 +41,7 @@ Each example is a standalone display that should be easy to inspect and copy.
 2. Open your display.
 3. Click `Send`.
 4. Switch to the `HTML` tab.
-5. Paste the contents of the example `index.html`.
+5. Paste the contents of the example `display.html`.
 6. Click `Send HTML now`.
 
 If the example includes an `assets/` folder, open `My Files` in the dashboard and upload the asset files first. Copy each asset URL and replace the matching relative path in the HTML before pasting.

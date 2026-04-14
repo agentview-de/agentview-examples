@@ -2,7 +2,7 @@
 
 A fullscreen digital menu board for restaurants, cafés, and bistros. It shows the restaurant branding, a daily special, categorized menu items with prices, opening hours, and guest WiFi — all configurable through JSON.
 
-![Café Menu Board preview](screenshot.webp)
+![Café Menu Board preview](screenshot.png)
 
 ## Preview
 

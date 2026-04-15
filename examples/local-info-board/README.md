@@ -2,7 +2,7 @@
 
 A fullscreen information display with time, weather, air quality, daylight data, and rotating headlines. Data refreshes every 15 minutes and on wake from sleep. If an API is unavailable, the display shows a status message instead of stale data.
 
-![Local Info Board preview](screenshot.webp)
+![Local Info Board preview](screenshot.png)
 
 ## Preview
 

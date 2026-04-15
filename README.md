@@ -25,7 +25,7 @@ agentView delivers HTML or URLs to smart displays such as TVs, tablets, monitors
 
 ## Featured preview
 
-[![Local Info Board example preview](examples/local-info-board/screenshot.webp)](examples/local-info-board/)
+[![Local Info Board example preview](examples/local-info-board/screenshot.png)](examples/local-info-board/)
 
 More screenshots live in the individual example folders.
 

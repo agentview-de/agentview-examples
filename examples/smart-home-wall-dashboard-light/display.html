@@ -1,0 +1,1541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23f5faf6'/%3E%3Cpath d='M7 17 16 9l9 8v8H7z' fill='%232f9c7c'/%3E%3Ccircle cx='23' cy='10' r='3' fill='%23e7a93a'/%3E%3C/svg%3E">
+  <title>Smart Home Wall Dashboard</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f5faf6;
+      --surface: #ffffff;
+      --surface-strong: #edf7f1;
+      --text: #26352f;
+      --muted: rgba(38, 53, 47, 0.72);
+      --quiet: rgba(38, 53, 47, 0.48);
+      --line: rgba(47, 85, 70, 0.17);
+      --green: #2f9c7c;
+      --yellow: #e7a93a;
+      --red: #d96259;
+      --cyan: #2f86a6;
+      --coral: #e57666;
+      --ink: #ffffff;
+      --fs-xs: 13px;
+      --fs-sm: 15px;
+      --fs-base: 17px;
+      --fs-md: 20px;
+      --fs-lg: 28px;
+      --fs-xl: 44px;
+      --fs-clock: 62px;
+      --fs-focus: 72px;
+      --fs-energy: 44px;
+      --fs-ring: 30px;
+      --icon-sm: 25px;
+      --icon-md: 32px;
+      --icon-lg: 48px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      width: 100vw;
+      min-height: 100vh;
+      overflow: hidden;
+      background:
+        linear-gradient(120deg, #f5faf6 0%, #edf8fb 48%, #fff4f2 100%),
+        #f5faf6;
+      color: var(--text);
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    .material-symbols-outlined {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-family: "Material Symbols Outlined";
+      font-size: var(--icon-md);
+      font-style: normal;
+      font-weight: 300;
+      line-height: 1;
+      text-transform: none;
+      white-space: nowrap;
+      font-variation-settings: "FILL" 0, "wght" 300, "GRAD" 0, "opsz" 24;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    main {
+      width: 100vw;
+      height: 100vh;
+      min-height: 100vh;
+      display: grid;
+      grid-template-rows: auto 1fr;
+      gap: 26px;
+      padding: 38px 44px 44px;
+    }
+
+    .topbar {
+      display: grid;
+      grid-template-columns: 1fr auto auto;
+      align-items: end;
+      gap: 34px;
+      min-height: 104px;
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 24px;
+    }
+
+    .home-kicker {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      color: var(--green);
+      font-size: var(--fs-sm);
+      font-weight: 700;
+      letter-spacing: 0;
+      text-transform: uppercase;
+    }
+
+    .home-name {
+      margin-top: 10px;
+      font-size: var(--fs-xl);
+      line-height: 1;
+      font-weight: 800;
+      letter-spacing: 0;
+    }
+
+    .status-pill {
+      min-width: 186px;
+      min-height: 48px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 0 18px;
+      border: 1px solid rgba(108, 198, 160, 0.44);
+      border-radius: 8px;
+      color: var(--green);
+      background: rgba(47, 156, 124, 0.1);
+      font-size: var(--fs-sm);
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .time-block {
+      min-width: 318px;
+      text-align: right;
+    }
+
+    .clock {
+      font-size: var(--fs-clock);
+      line-height: 0.9;
+      font-weight: 800;
+      letter-spacing: 0;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .date {
+      margin-top: 12px;
+      color: var(--muted);
+      font-size: var(--fs-base);
+      font-weight: 700;
+      letter-spacing: 0;
+    }
+
+    .dashboard {
+      min-height: 0;
+      display: grid;
+      grid-template-columns: 1.05fr 1fr 0.95fr;
+      grid-template-rows: 1fr 1fr;
+      grid-template-areas:
+        "summary scene rooms"
+        "energy schedule devices";
+      gap: 24px;
+    }
+
+    .module {
+      min-width: 0;
+      min-height: 0;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--surface);
+      box-shadow: 0 18px 48px rgba(37, 64, 52, 0.12);
+    }
+
+    .module-pad {
+      padding: 26px 28px;
+    }
+
+    .module-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      min-height: 34px;
+      color: var(--muted);
+      font-size: var(--fs-sm);
+      font-weight: 800;
+      letter-spacing: 0;
+      text-transform: uppercase;
+    }
+
+    .module-title span {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .module-title .material-symbols-outlined {
+      color: var(--green);
+      font-size: var(--icon-sm);
+    }
+
+    .summary {
+      grid-area: summary;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      gap: 8px;
+    }
+
+    .weather-main {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      align-items: center;
+      gap: 18px;
+      min-height: 82px;
+    }
+
+    .weather-temp {
+      font-size: var(--fs-focus);
+      line-height: 0.82;
+      font-weight: 800;
+      letter-spacing: 0;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .weather-condition {
+      display: grid;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .weather-condition strong {
+      color: var(--text);
+      font-size: var(--fs-lg);
+      line-height: 1.05;
+      font-weight: 700;
+    }
+
+    .weather-condition span {
+      color: var(--muted);
+      font-size: var(--fs-md);
+      line-height: 1.25;
+      font-weight: 500;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .stat {
+      display: grid;
+      gap: 8px;
+      min-height: 54px;
+      padding: 8px 10px;
+      border-top: 3px solid var(--line);
+      background: var(--surface-strong);
+    }
+
+    .stat-label {
+      color: var(--quiet);
+      font-size: var(--fs-xs);
+      font-weight: 800;
+      letter-spacing: 0;
+      text-transform: uppercase;
+    }
+
+    .stat-value {
+      color: var(--text);
+      font-size: var(--fs-lg);
+      line-height: 1;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .security-line {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 12px;
+      align-items: center;
+      min-height: 52px;
+      padding: 8px 12px;
+      border: 1px solid rgba(47, 156, 124, 0.28);
+      border-radius: 8px;
+      background: rgba(47, 156, 124, 0.09);
+    }
+
+    .security-line .material-symbols-outlined {
+      color: var(--green);
+      font-size: var(--icon-lg);
+    }
+
+    .security-copy {
+      display: grid;
+      gap: 7px;
+      min-width: 0;
+    }
+
+    .security-copy strong {
+      font-size: var(--fs-md);
+      line-height: 1.1;
+    }
+
+    .security-copy span {
+      color: var(--muted);
+      font-size: var(--fs-sm);
+      line-height: 1.28;
+    }
+
+    .scene {
+      grid-area: scene;
+      position: relative;
+      display: grid;
+      grid-template-rows: minmax(0, 1fr) auto;
+      margin: 0;
+      overflow: hidden;
+      background: #edf8fb;
+    }
+
+    .scene img {
+      width: 100%;
+      height: 100%;
+      min-height: 0;
+      object-fit: cover;
+      display: block;
+    }
+
+    .scene-caption {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      min-height: 74px;
+      padding: 18px 22px;
+      border-top: 1px solid rgba(47, 85, 70, 0.2);
+      background: #ffffff;
+      color: var(--text);
+    }
+
+    .scene-caption strong {
+      font-size: var(--fs-md);
+      line-height: 1.1;
+    }
+
+    .scene-caption span {
+      color: var(--muted);
+      font-size: var(--fs-sm);
+      font-weight: 700;
+    }
+
+    .rooms {
+      grid-area: rooms;
+      display: grid;
+      grid-template-rows: auto 1fr;
+      gap: 18px;
+    }
+
+    .room-list,
+    .device-list,
+    .schedule-list {
+      display: grid;
+      gap: 0;
+      align-content: start;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    .room-row,
+    .device-row,
+    .schedule-row {
+      display: grid;
+      align-items: center;
+      min-height: 56px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .room-row {
+      grid-template-columns: 1fr auto;
+      gap: 20px;
+    }
+
+    .room-row:last-child,
+    .device-row:last-child,
+    .schedule-row:last-child {
+      border-bottom: 0;
+    }
+
+    .room-name,
+    .device-name,
+    .event-title {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      color: var(--text);
+      font-size: var(--fs-md);
+      font-weight: 800;
+    }
+
+    .room-meta,
+    .device-meta,
+    .event-tag {
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: var(--fs-sm);
+      font-weight: 700;
+    }
+
+    .room-state {
+      min-width: 92px;
+      text-align: right;
+      color: var(--green);
+      font-size: var(--fs-base);
+      font-weight: 800;
+    }
+
+    .energy {
+      grid-area: energy;
+      display: grid;
+      grid-template-rows: auto auto auto;
+      gap: 22px;
+    }
+
+    .energy-main {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      align-items: center;
+      gap: 24px;
+    }
+
+    .energy-number {
+      display: grid;
+      gap: 14px;
+    }
+
+    .energy-number strong {
+      font-size: var(--fs-energy);
+      line-height: 0.95;
+      font-weight: 800;
+      white-space: nowrap;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .energy-number > span {
+      color: var(--muted);
+      font-size: var(--fs-base);
+      font-weight: 700;
+    }
+
+    .battery-ring {
+      --battery: 70%;
+      width: 142px;
+      height: 142px;
+      display: grid;
+      place-items: center;
+      justify-self: end;
+      border-radius: 50%;
+      background:
+        radial-gradient(circle at center, #fffefe 0 57%, transparent 58%),
+        conic-gradient(var(--green) var(--battery), rgba(47, 85, 70, 0.14) 0);
+    }
+
+    .battery-ring span {
+      color: var(--text);
+      font-size: var(--fs-ring);
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .flow-bars {
+      display: grid;
+      gap: 10px;
+    }
+
+    .flow {
+      display: grid;
+      grid-template-columns: 96px 1fr minmax(126px, auto);
+      gap: 12px;
+      align-items: center;
+      color: var(--muted);
+      font-size: var(--fs-xs);
+      font-weight: 800;
+    }
+
+    .bar {
+      height: 12px;
+      overflow: hidden;
+      border-radius: 8px;
+      background: rgba(47, 85, 70, 0.13);
+    }
+
+    .bar span {
+      display: block;
+      width: var(--value, 40%);
+      height: 100%;
+      border-radius: 8px;
+      background: var(--green);
+    }
+
+    .bar.yellow span {
+      background: var(--yellow);
+    }
+
+    .bar.cyan span {
+      background: var(--cyan);
+    }
+
+    .schedule {
+      grid-area: schedule;
+      display: grid;
+      grid-template-rows: auto auto auto;
+      gap: 10px;
+    }
+
+    .schedule-list {
+      gap: 2px;
+      overflow: visible;
+    }
+
+    .schedule-row {
+      grid-template-columns: 78px 18px minmax(0, 1fr);
+      gap: 10px;
+      min-height: 36px;
+      padding: 0;
+      border-bottom: 0;
+    }
+
+    .event-time {
+      color: var(--yellow);
+      font-size: var(--fs-sm);
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .event-marker {
+      position: relative;
+      align-self: stretch;
+      width: 18px;
+    }
+
+    .event-marker::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 8px;
+      width: 2px;
+      background: rgba(47, 156, 124, 0.2);
+    }
+
+    .event-marker::after {
+      content: "";
+      position: absolute;
+      top: 6px;
+      left: 3px;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--yellow);
+      box-shadow: 0 0 0 5px rgba(231, 169, 58, 0.18);
+    }
+
+    .schedule-row:last-child .event-marker::before {
+      display: none;
+    }
+
+    .event-card {
+      min-width: 0;
+      padding: 3px 8px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.64);
+    }
+
+    .schedule .event-title {
+      font-size: var(--fs-sm);
+    }
+
+    .schedule .event-tag {
+      margin-top: 2px;
+      font-size: var(--fs-xs);
+    }
+
+    .tasks {
+      min-height: 0;
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--surface-strong);
+    }
+
+    .tasks-title {
+      margin-bottom: 10px;
+      color: var(--quiet);
+      font-size: var(--fs-xs);
+      font-weight: 800;
+      letter-spacing: 0;
+      text-transform: uppercase;
+    }
+
+    .task-list {
+      margin: 0;
+      padding: 0;
+      display: grid;
+      gap: 6px;
+      list-style: none;
+    }
+
+    .task-list li {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 12px;
+      color: var(--muted);
+      font-size: var(--fs-xs);
+      line-height: 1.2;
+      font-weight: 700;
+    }
+
+    .task-list li::before {
+      content: "";
+      width: 9px;
+      height: 9px;
+      margin-top: 7px;
+      border-radius: 50%;
+      background: var(--yellow);
+    }
+
+    .devices {
+      grid-area: devices;
+      display: grid;
+      grid-template-rows: auto 1fr;
+      gap: 18px;
+    }
+
+    .device-row {
+      grid-template-columns: auto 1fr auto;
+      gap: 16px;
+      min-height: 58px;
+    }
+
+    .device-row .material-symbols-outlined {
+      width: 42px;
+      height: 42px;
+      border-radius: 8px;
+      color: var(--ink);
+      background: var(--yellow);
+      font-size: var(--icon-sm);
+    }
+
+    .device-value {
+      color: var(--green);
+      font-size: var(--fs-md);
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .loading {
+      position: fixed;
+      inset: 0;
+      z-index: 20;
+      display: grid;
+      place-items: center;
+      background: var(--bg);
+      color: var(--muted);
+      font-size: var(--fs-md);
+      font-weight: 800;
+      letter-spacing: 0;
+      text-transform: uppercase;
+      transition: opacity 0.35s ease, visibility 0.35s ease;
+    }
+
+    .loading.hidden {
+      opacity: 0;
+      visibility: hidden;
+    }
+
+    @media (max-width: 1500px), (max-height: 850px) {
+      :root {
+        --fs-xs: 11px;
+        --fs-sm: 13px;
+        --fs-base: 15px;
+        --fs-md: 17px;
+        --fs-lg: 24px;
+        --fs-xl: 38px;
+        --fs-clock: 52px;
+        --fs-focus: 76px;
+        --fs-energy: 40px;
+        --fs-ring: 25px;
+        --icon-sm: 22px;
+        --icon-md: 28px;
+        --icon-lg: 36px;
+      }
+
+      main {
+        gap: 16px;
+        padding: 24px 28px 28px;
+      }
+
+      .topbar {
+        gap: 22px;
+        min-height: 80px;
+        padding-bottom: 16px;
+      }
+
+      .home-kicker {
+        font-size: var(--fs-sm);
+      }
+
+      .home-name {
+        font-size: var(--fs-xl);
+      }
+
+      .status-pill {
+        min-height: 42px;
+        font-size: var(--fs-sm);
+      }
+
+      .time-block {
+        min-width: 240px;
+      }
+
+      .clock {
+        font-size: var(--fs-clock);
+      }
+
+      .date {
+        font-size: var(--fs-base);
+      }
+
+      .dashboard {
+        gap: 16px;
+      }
+
+      .module-pad {
+        padding: 16px 18px;
+      }
+
+      .module-title {
+        min-height: 28px;
+        font-size: var(--fs-sm);
+      }
+
+      .module-title .material-symbols-outlined {
+        font-size: var(--icon-sm);
+      }
+
+      .summary {
+        gap: 8px;
+      }
+
+      .weather-main {
+        gap: 12px;
+        min-height: 78px;
+      }
+
+      .weather-temp {
+        font-size: var(--fs-focus);
+      }
+
+      .weather-condition {
+        gap: 6px;
+      }
+
+      .weather-condition strong {
+        font-size: var(--fs-lg);
+      }
+
+      .weather-condition span {
+        font-size: var(--fs-base);
+      }
+
+      .summary-grid {
+        gap: 8px;
+      }
+
+      .stat {
+        min-height: 52px;
+        padding: 8px 10px;
+      }
+
+      .stat-label {
+        font-size: var(--fs-xs);
+      }
+
+      .stat-value {
+        font-size: var(--fs-lg);
+      }
+
+      .security-line {
+        gap: 10px;
+        min-height: 52px;
+        padding: 8px 10px;
+      }
+
+      .security-line .material-symbols-outlined {
+        font-size: var(--icon-lg);
+      }
+
+      .security-copy strong {
+        font-size: var(--fs-md);
+      }
+
+      .security-copy span {
+        font-size: var(--fs-sm);
+      }
+
+      .scene-caption {
+        left: 18px;
+        right: 18px;
+        bottom: 18px;
+        padding: 14px 16px;
+      }
+
+      .scene-caption strong {
+        font-size: var(--fs-md);
+      }
+
+      .scene-caption span {
+        font-size: var(--fs-sm);
+      }
+
+      .rooms,
+      .devices,
+      .schedule {
+        gap: 8px;
+      }
+
+      .schedule-list {
+        gap: 4px;
+      }
+
+      .room-row,
+      .device-row {
+        min-height: 42px;
+      }
+
+      .schedule-row {
+        grid-template-columns: 62px 16px minmax(0, 1fr);
+        gap: 10px;
+        min-height: 34px;
+      }
+
+      .room-name,
+      .device-name,
+      .event-title {
+        font-size: var(--fs-md);
+      }
+
+      .room-meta,
+      .device-meta,
+      .event-tag {
+        font-size: var(--fs-xs);
+      }
+
+      .room-state {
+        min-width: 74px;
+        font-size: var(--fs-sm);
+      }
+
+      .energy {
+        gap: 9px;
+      }
+
+      .energy-main {
+        gap: 12px;
+      }
+
+      .energy-number strong {
+        font-size: var(--fs-energy);
+      }
+
+      .energy-number > span {
+        font-size: var(--fs-xs);
+      }
+
+      .battery-ring {
+        width: 96px;
+        height: 96px;
+      }
+
+      .battery-ring span {
+        font-size: var(--fs-ring);
+      }
+
+      .flow-bars {
+        gap: 7px;
+      }
+
+      .flow {
+        grid-template-columns: 70px 1fr minmax(94px, auto);
+        gap: 8px;
+        font-size: var(--fs-xs);
+      }
+
+      .bar {
+        height: 10px;
+      }
+
+      .event-time {
+        font-size: var(--fs-xs);
+      }
+
+      .tasks {
+        min-height: 58px;
+        padding: 7px 10px;
+      }
+
+      .tasks-title {
+        margin-bottom: 5px;
+        font-size: var(--fs-xs);
+      }
+
+      .task-list {
+        gap: 5px;
+      }
+
+      .task-list li {
+        font-size: var(--fs-xs);
+        line-height: 1.15;
+      }
+
+      .event-card {
+        padding: 3px 8px;
+      }
+
+      .schedule .event-title {
+        font-size: var(--fs-sm);
+      }
+
+      .schedule .event-tag {
+        margin-top: 3px;
+        font-size: var(--fs-xs);
+      }
+
+      .device-row .material-symbols-outlined {
+        width: 34px;
+        height: 34px;
+        font-size: var(--icon-sm);
+      }
+
+      .device-value {
+        font-size: var(--fs-md);
+      }
+    }
+
+    @media (max-width: 1180px) {
+      body {
+        overflow-y: auto;
+      }
+
+      main {
+        height: auto;
+        padding: 26px;
+      }
+
+      .topbar {
+        grid-template-columns: 1fr;
+        gap: 20px;
+        align-items: start;
+      }
+
+      .time-block {
+        min-width: 0;
+        text-align: left;
+      }
+
+      .home-name {
+        font-size: var(--fs-xl);
+      }
+
+      .clock {
+        font-size: var(--fs-clock);
+      }
+
+      .dashboard {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto;
+        grid-template-areas:
+          "summary"
+          "scene"
+          "energy"
+          "schedule"
+          "rooms"
+          "devices";
+      }
+
+      .module {
+        min-height: 340px;
+      }
+
+      .scene {
+        min-height: 360px;
+      }
+    }
+
+    @media (min-width: 760px) and (max-width: 1180px) {
+      .topbar {
+        grid-template-columns: 1fr auto;
+        align-items: end;
+      }
+
+      .status-pill {
+        grid-column: 1;
+        grid-row: 2;
+        justify-self: start;
+      }
+
+      .time-block {
+        grid-column: 2;
+        grid-row: 1 / 3;
+        align-self: center;
+        text-align: right;
+      }
+
+      .dashboard {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-areas:
+          "summary scene"
+          "energy schedule"
+          "rooms devices";
+      }
+
+      .module {
+        min-height: 320px;
+      }
+
+      .scene {
+        min-height: 320px;
+      }
+    }
+
+    @media (max-width: 720px) {
+      :root {
+        --fs-xs: 11px;
+        --fs-sm: 13px;
+        --fs-base: 15px;
+        --fs-md: 17px;
+        --fs-lg: 23px;
+        --fs-xl: 30px;
+        --fs-clock: 42px;
+        --fs-focus: 64px;
+        --fs-energy: 36px;
+        --fs-ring: 25px;
+        --icon-sm: 20px;
+        --icon-md: 26px;
+        --icon-lg: 34px;
+      }
+
+      main {
+        padding: 18px;
+      }
+
+      .home-name {
+        font-size: var(--fs-xl);
+      }
+
+      .clock {
+        font-size: var(--fs-clock);
+      }
+
+      .module {
+        min-height: auto;
+      }
+
+      .module-pad {
+        padding: 20px;
+      }
+
+      .module-title {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .weather-main,
+      .energy-main {
+        grid-template-columns: 1fr;
+      }
+
+      .weather-temp {
+        font-size: var(--fs-focus);
+      }
+
+      .weather-condition strong {
+        font-size: var(--fs-lg);
+      }
+
+      .summary-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .scene {
+        min-height: 280px;
+      }
+
+      .battery-ring {
+        justify-self: start;
+      }
+
+      .scene-caption,
+      .flow,
+      .device-row {
+        grid-template-columns: 1fr;
+        text-align: left;
+      }
+
+      .scene-caption {
+        align-items: start;
+      }
+
+      .schedule-row {
+        grid-template-columns: 58px 14px minmax(0, 1fr);
+        gap: 8px;
+      }
+
+      .event-time {
+        font-size: var(--fs-sm);
+      }
+
+      .event-card {
+        padding: 8px 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="loading" id="loading">Loading smart home</div>
+
+  <main>
+    <header class="topbar">
+      <div>
+        <div class="home-kicker">
+          <span class="material-symbols-outlined" aria-hidden="true">home</span>
+          <span>Smart home wall dashboard</span>
+        </div>
+        <div class="home-name" id="home-name">Sample Home</div>
+      </div>
+      <div class="status-pill">
+        <span class="material-symbols-outlined" aria-hidden="true">sensors</span>
+        <span id="status-message">Live sample data</span>
+      </div>
+      <div class="time-block">
+        <div class="clock" id="clock">--:--</div>
+        <div class="date" id="date">Loading date</div>
+      </div>
+    </header>
+
+    <section class="dashboard" aria-label="Smart home status">
+      <section class="module module-pad summary" aria-label="Weather and security">
+        <div class="module-title">
+          <span><span class="material-symbols-outlined" aria-hidden="true">partly_cloudy_day</span>Today</span>
+          <span id="weather-range">-- / --</span>
+        </div>
+        <div class="weather-main">
+          <div class="weather-temp"><span id="weather-temp">--</span>&deg;</div>
+          <div class="weather-condition">
+            <strong id="weather-condition">Loading weather</strong>
+            <span id="weather-detail">Humidity -- / Wind --</span>
+          </div>
+        </div>
+        <div class="summary-grid">
+          <div class="stat">
+            <div class="stat-label">Battery</div>
+            <div class="stat-value" id="battery-small">--%</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">Solar</div>
+            <div class="stat-value"><span id="solar-small">--</span> kW</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">Home load</div>
+            <div class="stat-value"><span id="load-small">--</span> kW</div>
+          </div>
+        </div>
+        <div class="security-line">
+          <span class="material-symbols-outlined" aria-hidden="true">shield_lock</span>
+          <div class="security-copy">
+            <strong id="security-mode">Security: --</strong>
+            <span id="security-detail">Doors -- / Windows -- / Cameras --</span>
+          </div>
+        </div>
+      </section>
+
+      <figure class="module scene" aria-label="Smart home scene">
+        <img id="scene-image" src="./assets/home-wall-scene.svg" alt="Illustration of a smart home dashboard on a wall">
+        <figcaption class="scene-caption">
+          <strong id="scene-title">The house is in Home mode.</strong>
+          <span id="scene-detail">Garden motion cleared</span>
+        </figcaption>
+      </figure>
+
+      <section class="module module-pad rooms" aria-label="Room status">
+        <div class="module-title">
+          <span><span class="material-symbols-outlined" aria-hidden="true">thermostat</span>Rooms</span>
+          <span id="rooms-count">0 zones</span>
+        </div>
+        <div class="room-list" id="room-list"></div>
+      </section>
+
+      <section class="module module-pad energy" aria-label="Energy status">
+        <div class="module-title">
+          <span><span class="material-symbols-outlined" aria-hidden="true">solar_power</span>Energy</span>
+          <span id="energy-today">-- kWh today</span>
+        </div>
+        <div class="energy-main">
+          <div class="energy-number">
+            <strong><span id="energy-solar">--</span> kW</strong>
+            <span id="energy-grid">Grid status unavailable</span>
+          </div>
+          <div class="battery-ring" id="battery-ring"><span id="battery-ring-value">--%</span></div>
+        </div>
+        <div class="flow-bars" aria-label="Energy flow bars">
+          <div class="flow">
+            <span>Solar</span>
+            <div class="bar"><span id="solar-bar"></span></div>
+            <span><span id="solar-flow">--</span> kW</span>
+          </div>
+          <div class="flow">
+            <span>Home</span>
+            <div class="bar yellow"><span id="home-bar"></span></div>
+            <span><span id="home-flow">--</span> kW</span>
+          </div>
+          <div class="flow">
+            <span>Grid</span>
+            <div class="bar cyan"><span id="grid-bar"></span></div>
+            <span id="grid-flow">--</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="module module-pad schedule" aria-label="Schedule and household tasks">
+        <div class="module-title">
+          <span><span class="material-symbols-outlined" aria-hidden="true">event_upcoming</span>Next up</span>
+          <span id="schedule-count">0 events</span>
+        </div>
+        <div class="schedule-list" id="schedule-list"></div>
+        <div class="tasks">
+          <div class="tasks-title">Reminders</div>
+          <ul class="task-list" id="task-list"></ul>
+        </div>
+      </section>
+
+      <section class="module module-pad devices" aria-label="Device status">
+        <div class="module-title">
+          <span><span class="material-symbols-outlined" aria-hidden="true">settings_remote</span>Devices</span>
+          <span id="devices-count">0 online</span>
+        </div>
+        <div class="device-list" id="device-list"></div>
+      </section>
+    </section>
+  </main>
+
+  <script>
+    const defaultConfig = {
+      title: "Smart Home Wall Dashboard",
+      homeName: "Sample Home",
+      timezone: "Europe/Berlin",
+      locale: "en-GB",
+      fontUrl: "./assets/material-symbols-w300.woff2",
+      sceneImage: "./assets/home-wall-scene.svg",
+      dataUrl: "",
+      refreshInterval: 60,
+      statusMessage: "Ready for the day",
+      weather: {
+        temperature: 21,
+        condition: "Clear evening",
+        high: 24,
+        low: 14,
+        humidity: 48,
+        wind: 9
+      },
+      energy: {
+        solarKw: 3.4,
+        homeKw: 1.2,
+        batteryPercent: 76,
+        gridKw: -1.8,
+        todayKwh: 18.6
+      },
+      security: {
+        mode: "Home",
+        doorsOpen: 0,
+        windowsOpen: 1,
+        camerasOnline: 3,
+        lastEvent: "Garden motion cleared"
+      },
+      calendar: [
+        { time: "07:30", title: "School run", tag: "Family" },
+        { time: "09:00", title: "Weekly planning", tag: "Work" },
+        { time: "18:15", title: "Dinner", tag: "Home" }
+      ],
+      rooms: [
+        { name: "Living Room", temperature: 21.4, humidity: 46, lightsOn: 2, state: "Comfort" },
+        { name: "Kitchen", temperature: 22.1, humidity: 51, lightsOn: 1, state: "Active" },
+        { name: "Bedroom", temperature: 19.8, humidity: 43, lightsOn: 0, state: "Quiet" },
+        { name: "Office", temperature: 20.6, humidity: 44, lightsOn: 1, state: "Work" }
+      ],
+      devices: [
+        { label: "Front door", value: "Locked", icon: "lock" },
+        { label: "Robot vacuum", value: "Docked", icon: "smart_toy" },
+        { label: "Washer", value: "34 min", icon: "local_laundry_service" },
+        { label: "Car", value: "82%", icon: "electric_car" }
+      ],
+      tasks: [
+        "Take bins out after 20:00",
+        "Charge car before 07:00",
+        "Water herbs"
+      ]
+    };
+
+    let config = defaultConfig;
+
+    function byId(id) {
+      return document.getElementById(id);
+    }
+
+    function text(id, value) {
+      const node = byId(id);
+      if (node) node.textContent = value;
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+    }
+
+    function mergeConfig(base, update) {
+      const next = { ...base, ...update };
+      next.weather = { ...base.weather, ...(update.weather || {}) };
+      next.energy = { ...base.energy, ...(update.energy || {}) };
+      next.security = { ...base.security, ...(update.security || {}) };
+      next.calendar = update.calendar || base.calendar;
+      next.rooms = update.rooms || base.rooms;
+      next.devices = update.devices || base.devices;
+      next.tasks = update.tasks || base.tasks;
+      return next;
+    }
+
+    function number(value, digits = 0) {
+      const parsed = Number(value);
+      if (!Number.isFinite(parsed)) return "--";
+      return parsed.toFixed(digits);
+    }
+
+    function percent(value) {
+      const parsed = Number(value);
+      if (!Number.isFinite(parsed)) return "0%";
+      return Math.max(0, Math.min(100, parsed)) + "%";
+    }
+
+    function setBar(id, value, max) {
+      const parsed = Math.abs(Number(value));
+      const width = Number.isFinite(parsed) && max > 0 ? Math.min(100, Math.round((parsed / max) * 100)) : 0;
+      const node = byId(id);
+      if (node) node.style.setProperty("--value", width + "%");
+    }
+
+    function injectFont() {
+      const url = String(config.fontUrl || "").replace(/["'()]/g, "");
+      if (!url) return;
+      const style = document.createElement("style");
+      style.textContent = '@font-face { font-family: "Material Symbols Outlined"; font-style: normal; font-weight: 300; src: url("' + url + '") format("woff2"); }';
+      document.head.appendChild(style);
+    }
+
+    function updateClock() {
+      const now = new Date();
+      text("clock", new Intl.DateTimeFormat(config.locale, {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false,
+        timeZone: config.timezone
+      }).format(now));
+      text("date", new Intl.DateTimeFormat(config.locale, {
+        weekday: "long",
+        month: "long",
+        day: "numeric",
+        timeZone: config.timezone
+      }).format(now));
+    }
+
+    async function fetchJson(url) {
+      const response = await fetch(url, { cache: "no-store" });
+      if (!response.ok) throw new Error("HTTP " + response.status);
+      return response.json();
+    }
+
+    async function loadConfig() {
+      let next = defaultConfig;
+      try {
+        const loaded = await fetchJson("./config.json");
+        next = mergeConfig(next, loaded);
+      } catch (error) {
+        console.warn("Using built-in config:", error);
+      }
+      return next;
+    }
+
+    async function loadLiveData() {
+      if (!config.dataUrl) return;
+      try {
+        const liveData = await fetchJson(config.dataUrl);
+        config = mergeConfig(config, liveData);
+        render();
+      } catch (error) {
+        console.warn("Live data unavailable:", error);
+        text("status-message", "Sample data fallback");
+      }
+    }
+
+    function renderWeather() {
+      const weather = config.weather || {};
+      text("weather-temp", number(weather.temperature, 0));
+      text("weather-condition", weather.condition || "Weather unavailable");
+      text("weather-detail", "Humidity " + number(weather.humidity, 0) + "% / Wind " + number(weather.wind, 0) + " km/h");
+      byId("weather-range").innerHTML = number(weather.low, 0) + "&deg; / " + number(weather.high, 0) + "&deg;";
+    }
+
+    function renderSecurity() {
+      const security = config.security || {};
+      const mode = security.mode || "--";
+      const doors = Number(security.doorsOpen || 0);
+      const windows = Number(security.windowsOpen || 0);
+      const cameras = Number(security.camerasOnline || 0);
+      text("security-mode", "Security: " + mode);
+      text("security-detail", doors + (doors === 1 ? " door" : " doors") + " open \u00b7 " + windows + (windows === 1 ? " window" : " windows") + " open \u00b7 " + cameras + (cameras === 1 ? " camera" : " cameras"));
+      text("scene-title", "The house is in " + mode + " mode.");
+      text("scene-detail", security.lastEvent || "No recent events");
+    }
+
+    function renderEnergy() {
+      const energy = config.energy || {};
+      const solar = Number(energy.solarKw || 0);
+      const load = Number(energy.homeKw || 0);
+      const grid = Number(energy.gridKw || 0);
+      const battery = Number(energy.batteryPercent || 0);
+      const maxFlow = Math.max(4, Math.abs(solar), Math.abs(load), Math.abs(grid));
+      const gridLabel = grid < 0 ? "Exporting " + number(Math.abs(grid), 1) + " kW" : "Importing " + number(grid, 1) + " kW";
+
+      text("battery-small", number(battery, 0) + "%");
+      text("solar-small", number(solar, 1));
+      text("load-small", number(load, 1));
+      text("energy-solar", number(solar, 1));
+      text("energy-grid", gridLabel);
+      text("energy-today", number(energy.todayKwh, 1) + " kWh today");
+      text("battery-ring-value", number(battery, 0) + "%");
+      text("solar-flow", number(solar, 1));
+      text("home-flow", number(load, 1));
+      text("grid-flow", gridLabel);
+
+      byId("battery-ring").style.setProperty("--battery", percent(battery));
+      setBar("solar-bar", solar, maxFlow);
+      setBar("home-bar", load, maxFlow);
+      setBar("grid-bar", grid, maxFlow);
+    }
+
+    function renderRooms() {
+      const rooms = config.rooms || [];
+      text("rooms-count", rooms.length + (rooms.length === 1 ? " zone" : " zones"));
+      byId("room-list").innerHTML = rooms.slice(0, 5).map((room) => {
+        const lights = Number(room.lightsOn || 0);
+        const lightsLabel = lights === 0 ? "Lights off" : lights === 1 ? "1 light" : lights + " lights";
+        return `
+        <article class="room-row">
+          <div>
+            <div class="room-name">${escapeHtml(room.name || "Room")}</div>
+            <div class="room-meta">${number(room.temperature, 1)}&deg;C / ${number(room.humidity, 0)}% / ${lightsLabel}</div>
+          </div>
+          <div class="room-state">${escapeHtml(room.state || "OK")}</div>
+        </article>`;
+      }).join("");
+    }
+
+    function renderDevices() {
+      const devices = config.devices || [];
+      text("devices-count", devices.length + " online");
+      byId("device-list").innerHTML = devices.slice(0, 6).map((device) => `
+        <article class="device-row">
+          <span class="material-symbols-outlined" aria-hidden="true">${escapeHtml(device.icon || "sensors")}</span>
+          <div>
+            <div class="device-name">${escapeHtml(device.label || "Device")}</div>
+          </div>
+          <div class="device-value">${escapeHtml(device.value || "--")}</div>
+        </article>
+      `).join("");
+    }
+
+    function renderSchedule() {
+      const calendar = config.calendar || [];
+      text("schedule-count", calendar.length + " events");
+      byId("schedule-list").innerHTML = calendar.slice(0, 4).map((event) => `
+        <article class="schedule-row">
+          <div class="event-time">${escapeHtml(event.time || "--:--")}</div>
+          <div class="event-marker" aria-hidden="true"></div>
+          <div class="event-card">
+            <div class="event-title">${escapeHtml(event.title || "Event")}</div>
+            <div class="event-tag">${escapeHtml(event.tag || "Home")}</div>
+          </div>
+        </article>
+      `).join("");
+    }
+
+    function renderTasks() {
+      const tasks = config.tasks || [];
+      byId("task-list").innerHTML = tasks.slice(0, 3).map((task) => `
+        <li>${escapeHtml(task)}</li>
+      `).join("");
+    }
+
+    function renderScene() {
+      const image = byId("scene-image");
+      if (image && config.sceneImage) image.src = config.sceneImage;
+    }
+
+    function render() {
+      document.title = config.title || defaultConfig.title;
+      document.documentElement.lang = (config.locale || "en").slice(0, 2);
+      text("home-name", config.homeName || defaultConfig.homeName);
+      text("status-message", config.statusMessage || "Live sample data");
+      renderScene();
+      renderWeather();
+      renderSecurity();
+      renderEnergy();
+      renderRooms();
+      renderDevices();
+      renderSchedule();
+      renderTasks();
+      updateClock();
+    }
+
+    async function init() {
+      config = await loadConfig();
+      injectFont();
+      render();
+      await loadLiveData();
+      byId("loading").classList.add("hidden");
+      setInterval(updateClock, 1000);
+      setInterval(loadLiveData, Math.max(15, Number(config.refreshInterval || 60)) * 1000);
+    }
+
+    init();
+  </script>
+</body>
+</html>

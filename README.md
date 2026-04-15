@@ -8,10 +8,20 @@ agentView delivers HTML or URLs to smart displays such as TVs, tablets, monitors
 
 | Example | Description |
 | --- | --- |
-| [Hello World](examples/hello-world/) | A polished starter display with a live clock and no build step. |
-| [Local Info Board](examples/local-info-board/) | A configurable local dashboard with weather, air quality, daylight data, and headlines. |
-| [Smart Home Wall Dashboard](examples/smart-home-wall-dashboard/) | A wall-tablet dashboard for weather, calendar, energy, room climate, devices, and security. |
 | [Café Menu Board](examples/cafe-menu-board/) | A digital menu board for restaurants and cafés with categories, prices, daily special, and branding. |
+| [Company KPI Board](examples/company-kpi-board/) | A corporate dashboard tracking metrics, goals, and team announcements. |
+| [Craft Beer Taplist](examples/craft-beer-taplist/) | A dynamic taplist for breweries and pubs with ABV, IBU, style colors, and pricing. |
+| [Fast Food Menu Board](examples/fastfood-menu-board/) | A digital order menu for fast food and quick-service restaurants, including animated promos. |
+| [Gym Schedule Board](examples/gym-schedule-board/) | A lively fitness center schedule with real-time class status and trainer info. |
+| [Hello World](examples/hello-world/) | A cinematic starter display with ambient animation, an elegant clock, and no build step. |
+| [Hotel Concierge Board](examples/hotel-concierge-board/) | A welcoming lobby display providing weather, local tips, flight departures, and events. |
+| [Local Info Board](examples/local-info-board/) | A configurable local dashboard with weather, air quality, daylight data, and headlines. |
+| [Manufacturing Shift Board](examples/manufacturing-shift-board/) | An industrial status board for shift targets, safety metrics, and machine status. |
+| [Patient Queue Board](examples/patient-queue-board/) | A waiting room display for clinics showing current ticket numbers and room assignments. |
+| [Real Estate Exposé](examples/real-estate-expose/) | A digital storefront display traversing property listings with images and key details. |
+| [Smart Home Wall Dashboard](examples/smart-home-wall-dashboard/) | A wall-tablet dashboard with a premium dark-glass UI for weather, calendar, energy, and devices. |
+| [Smart Home Wall Dashboard (Light)](examples/smart-home-wall-dashboard-light/) | The original wall-tablet dashboard for smart homes featuring a bright, clean aesthetic. |
+| [Transit Board](examples/transit-board/) | A real-time departure board for public transport with customizable modes and delays. |
 
 ## Featured preview
 

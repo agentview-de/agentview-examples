@@ -1,55 +1,61 @@
 {
-  "title": "Smart Home Wall Dashboard",
-  "homeName": "Sample Home",
+  "title": "Home Intelligence | Control Center",
+  "homeName": "RESIDENCE HUB",
   "timezone": "Europe/Berlin",
   "locale": "en-GB",
   "fontUrl": "./assets/material-symbols-w300.woff2",
-  "sceneImage": "./assets/home-wall-scene.svg",
   "dataUrl": "",
   "refreshInterval": 60,
-  "statusMessage": "Ready for the day",
+  "statusMessage": "All systems nominal. Environment optimized.",
+  "theme": {
+    "primary": "#007AFF",
+    "background": "#F2F2F7",
+    "surface": "rgba(255, 255, 255, 0.6)",
+    "accent": "#FF9F0A",
+    "textMain": "#1C1C1E",
+    "textMuted": "#8E8E93"
+  },
   "weather": {
     "temperature": 21,
-    "condition": "Clear evening",
+    "condition": "Partly Cloudy",
     "high": 24,
     "low": 14,
     "humidity": 48,
     "wind": 9
   },
   "energy": {
-    "solarKw": 3.4,
-    "homeKw": 1.2,
-    "batteryPercent": 76,
-    "gridKw": -1.8,
-    "todayKwh": 18.6
+    "solarKw": 4.2,
+    "homeKw": 1.1,
+    "batteryPercent": 84,
+    "gridKw": -3.1,
+    "todayKwh": 12.4
   },
   "security": {
     "mode": "Home",
     "doorsOpen": 0,
-    "windowsOpen": 1,
-    "camerasOnline": 3,
-    "lastEvent": "Garden motion cleared"
+    "windowsOpen": 0,
+    "camerasOnline": 4,
+    "lastEvent": "Driveway motion detected 5m ago"
   },
   "calendar": [
-    { "time": "07:30", "title": "School run", "tag": "Family" },
-    { "time": "09:00", "title": "Weekly planning", "tag": "Work" },
-    { "time": "18:15", "title": "Dinner", "tag": "Home" }
+    { "time": "18:30", "title": "Evening Yoga", "tag": "Personal" },
+    { "time": "20:00", "title": "Smart Irrigation", "tag": "Garden" }
   ],
   "rooms": [
-    { "name": "Living Room", "temperature": 21.4, "humidity": 46, "lightsOn": 2, "state": "Comfort" },
-    { "name": "Kitchen", "temperature": 22.1, "humidity": 51, "lightsOn": 1, "state": "Active" },
-    { "name": "Bedroom", "temperature": 19.8, "humidity": 43, "lightsOn": 0, "state": "Quiet" },
-    { "name": "Office", "temperature": 20.6, "humidity": 44, "lightsOn": 1, "state": "Work" }
+    { "name": "Living Room", "temperature": 21.5, "humidity": 45, "lightsOn": 1, "state": "Optimal" },
+    { "name": "Kitchen", "temperature": 22.0, "humidity": 50, "lightsOn": 0, "state": "Eco" },
+    { "name": "Master Suite", "temperature": 19.5, "humidity": 42, "lightsOn": 0, "state": "Night" },
+    { "name": "Executive Office", "temperature": 21.0, "humidity": 44, "lightsOn": 1, "state": "Focus" }
   ],
   "devices": [
-    { "label": "Front door", "value": "Locked", "icon": "lock" },
-    { "label": "Robot vacuum", "value": "Docked", "icon": "smart_toy" },
-    { "label": "Washer", "value": "34 min", "icon": "local_laundry_service" },
-    { "label": "Car", "value": "82%", "icon": "electric_car" }
+    { "label": "Security System", "status": "Armed", "icon": "shield" },
+    { "label": "Garage Door", "status": "Closed", "icon": "garage" },
+    { "label": "Climate Hub", "status": "Adaptive", "icon": "thermostat" },
+    { "label": "Air Purifier", "status": "Active", "icon": "air_purifier" }
   ],
   "tasks": [
-    "Take bins out after 20:00",
-    "Charge car before 07:00",
-    "Water herbs"
+    "Recycling pick-up tomorrow morning",
+    "Water terrace plants at 20:00",
+    "Review security camera archive"
   ]
 }

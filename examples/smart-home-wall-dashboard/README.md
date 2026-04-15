@@ -2,7 +2,7 @@
 
 A fullscreen wall-tablet display for smart homes. It combines time, weather, calendar, energy, room climate, device status, security, and household tasks in one glanceable view.
 
-![Smart Home Wall Dashboard preview](screenshot.webp)
+![Smart Home Wall Dashboard preview](screenshot.png)
 
 ## Preview
 

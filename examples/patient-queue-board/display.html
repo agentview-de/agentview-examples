@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Metropolitan Wellness | Center</title>
+  <style>
+    :root {
+      --bg: #FAF9F6;
+      --surface: rgba(255, 255, 255, 0.85);
+      --primary: #34C759; /* Apple Mint Green */
+      --secondary: #5AC8FA; /* Apple Sky Blue */
+      --text-main: #1D1D1F;
+      --text-muted: #86868B;
+      --glass-border: rgba(0, 0, 0, 0.04);
+      
+      --font-stack: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif;
+      --transition: all 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+
+    * { 
+      box-sizing: border-box; 
+      margin: 0; 
+      padding: 0; 
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text-main);
+      font-family: var(--font-stack);
+      width: 100vw;
+      min-height: 100vh;
+      overflow-x: hidden;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    .bg-image {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: url('./assets/clinic_bg_warm.png') center/cover no-repeat;
+      z-index: -2;
+    }
+
+    .bg-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, rgba(250, 249, 246, 0.4) 0%, rgba(250, 249, 246, 0.8) 100%);
+      z-index: -1;
+    }
+
+    header {
+      padding: 40px 60px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      backdrop-filter: blur(25px) saturate(160%);
+      -webkit-backdrop-filter: blur(25px) saturate(160%);
+      background: rgba(255, 255, 255, 0.5);
+      border-bottom: 1px solid var(--glass-border);
+    }
+
+    .brand h1 {
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: -1px;
+      color: var(--text-main);
+    }
+
+    .brand p {
+      font-size: 13px;
+      color: var(--primary);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-top: 4px;
+    }
+
+    .clock {
+      font-size: 36px;
+      font-weight: 600;
+      color: var(--text-main);
+      font-variant-numeric: tabular-nums;
+    }
+
+    main {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr; /* Mobile first */
+      padding: 24px;
+      gap: 24px;
+    }
+
+    @media (min-width: 1200px) {
+      main {
+        grid-template-columns: 1.3fr 1fr;
+        padding: 40px 60px;
+        gap: 32px;
+      }
+    }
+
+    .glass-card {
+      background: var(--surface);
+      backdrop-filter: blur(40px) saturate(180%);
+      -webkit-backdrop-filter: blur(40px) saturate(180%);
+      border: 1px solid var(--glass-border);
+      border-radius: 40px;
+      padding: 40px;
+      box-shadow: 0 15px 45px rgba(0, 0, 0, 0.04);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .section-title {
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 2.5px;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .section-title::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      background: var(--primary);
+      border-radius: 50%;
+    }
+
+    /* Calling Tickets */
+    .call-list {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .call-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 24px 32px;
+      background: rgba(255, 255, 255, 0.5);
+      border: 1px solid rgba(0, 0, 0, 0.02);
+      border-radius: 28px;
+      transition: var(--transition);
+    }
+
+    .call-item.active {
+      background: white;
+      border: 2px solid var(--primary);
+      box-shadow: 0 10px 30px rgba(52, 199, 89, 0.15);
+      transform: scale(1.02);
+    }
+
+    .call-ticket {
+      font-size: 64px;
+      font-weight: 800;
+      color: var(--text-main);
+      letter-spacing: -2px;
+    }
+
+    .call-item.active .call-ticket { color: var(--primary); }
+
+    .call-info { text-align: right; }
+    .room-name { font-size: 24px; font-weight: 700; color: var(--text-main); }
+    .doc-name { font-size: 15px; color: var(--text-muted); margin-top: 4px; font-weight: 500; }
+
+    /* Notices List */
+    .note-list { display: flex; flex-direction: column; gap: 20px; }
+    .note-item {
+      padding: 24px;
+      background: rgba(255, 255, 255, 0.3);
+      border-radius: 28px;
+      display: flex;
+      gap: 20px;
+      align-items: flex-start;
+      border: 1px solid rgba(0, 0, 0, 0.01);
+    }
+
+    .note-icon {
+      font-size: 26px;
+      width: 52px;
+      height: 52px;
+      background: rgba(52, 199, 89, 0.1);
+      border-radius: 18px;
+      display: grid;
+      place-items: center;
+      color: var(--primary);
+      flex-shrink: 0;
+    }
+
+    .note-text h3 { font-size: 18px; font-weight: 700; margin-bottom: 6px; color: var(--text-main); }
+    .note-text p { font-size: 15px; line-height: 1.6; color: var(--text-muted); }
+
+    /* Bottom Ticker */
+    .ticker-container {
+      padding: 24px 60px;
+      background: rgba(255, 255, 255, 0.4);
+      backdrop-filter: blur(15px);
+      border-top: 1px solid var(--glass-border);
+    }
+
+    .ticker-inner {
+      overflow: hidden;
+      white-space: nowrap;
+      font-size: 17px;
+      font-weight: 500;
+      color: var(--text-main);
+    }
+
+    .ticker-scroll {
+      display: inline-block;
+      padding-left: 100%;
+      animation: ticker-slide 35s linear infinite;
+    }
+
+    @keyframes ticker-slide {
+      0% { transform: translate3d(0, 0, 0); }
+      100% { transform: translate3d(-100%, 0, 0); }
+    }
+
+    /* Responsive Adjustments */
+    @media (max-width: 1199px) {
+      header {
+        padding: 30px;
+      }
+      
+      .call-ticket {
+        font-size: 48px;
+      }
+    }
+
+    @media (max-width: 768px) {
+      header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+      }
+      
+      .clock {
+        font-size: 24px;
+        align-self: flex-end;
+      }
+      
+      .brand h1 {
+        font-size: 20px;
+      }
+      
+      .glass-card {
+        padding: 20px;
+        border-radius: 20px;
+      }
+      
+      .call-item {
+        padding: 16px;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+      }
+      
+      .call-ticket {
+        font-size: 36px;
+      }
+      
+      .call-info {
+        text-align: left;
+      }
+      
+      .ticker-container {
+        padding: 12px 20px;
+      }
+    }
+
+  </style>
+</head>
+<body>
+
+  <div class="bg-image"></div>
+  <div class="bg-overlay"></div>
+
+  <header>
+    <div class="brand">
+      <h1 id="clinic-name">Metropolitan Care Hub</h1>
+      <p id="greeting">Welcome to our Healing Space</p>
+    </div>
+    <div class="clock" id="clock">00:00</div>
+  </header>
+
+  <main>
+    <div class="glass-card">
+      <div class="section-title">Current Appointments</div>
+      <div class="call-list" id="call-list">
+        <!-- Calls injected -->
+      </div>
+    </div>
+
+    <div class="glass-card">
+      <div class="section-title">Community Wellness</div>
+      <div class="note-list" id="note-list">
+        <!-- Notes injected -->
+      </div>
+    </div>
+  </main>
+
+  <div class="ticker-container">
+    <div class="ticker-inner">
+      <div class="ticker-scroll" id="ticker-msg">Your health is our shared heartbeat. Enjoy a complimentary herbal tea while you wait.</div>
+    </div>
+  </div>
+
+  <script>
+    const defaultConfig = {
+      "clinicName": "METROPOLITAN CARE HUB",
+      "calls": [
+        { "ticket": "A-124", "room": "Friendly Care Room 1", "doctor": "Dr. Sarah Miller", "status": "now" },
+        { "ticket": "B-098", "room": "Healing Suite 3", "doctor": "Dr. James Aris", "status": "now" },
+        { "ticket": "C-012", "room": "Comfort Lounge", "status": "next" },
+        { "ticket": "A-125", "room": "Comfort Lounge", "status": "next" }
+      ],
+      "notices": [
+        { "title": "Wellness Meditation", "content": "Join our weekly meditation sessions every Tuesday at 10 AM.", "icon": "🧘" },
+        { "title": "Nutrition Suite", "content": "Personalized nutrition plans are now available.", "icon": "🥑" }
+      ],
+      "ticker": "Good Morning. We are here to support your journey to wellness. Your comfort is our priority."
+    };
+
+    let config = defaultConfig;
+
+    function renderBoard() {
+      document.getElementById('clinic-name').textContent = config.clinicName || "CARE HUB";
+      document.getElementById('ticker-msg').textContent = config.ticker || "";
+      
+      const callEl = document.getElementById('call-list');
+      callEl.innerHTML = (config.calls || []).map(c => `
+        <div class="call-item ${c.status === 'now' ? 'active' : ''}">
+          <div class="call-ticket">${c.ticket}</div>
+          <div class="call-info">
+            <div class="room-name">${c.room}</div>
+            ${c.doctor ? `<div class="doc-name">${c.doctor}</div>` : ''}
+          </div>
+        </div>
+      `).join('');
+
+      const noteEl = document.getElementById('note-list');
+      noteEl.innerHTML = (config.notices || []).map(n => `
+        <div class="note-item">
+          <div class="note-icon">${n.icon || 'ⓘ'}</div>
+          <div class="note-text">
+            <h3>${n.title}</h3>
+            <p>${n.content}</p>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function updateTime() {
+      const now = new Date();
+      document.getElementById('clock').textContent = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', hour12: false});
+      
+      const hour = now.getHours();
+      let greet = 'Welcome to our Healing Space';
+      if(hour < 12) greet = 'Good Morning. Have a beautiful start.';
+      else if(hour < 18) greet = 'Good Afternoon. Take a deep breath.';
+      else greet = 'Good Evening. Wishing you a peaceful night.';
+      document.getElementById('greeting').textContent = greet;
+    }
+
+    async function loadData() {
+      try {
+        const res = await fetch('./config.json', { cache: 'no-store' });
+        if(res.ok) {
+           const newData = await res.json();
+           config = { ...config, ...newData };
+        }
+      } catch(e) {}
+      renderBoard();
+    }
+
+    async function init() {
+      renderBoard();
+      updateTime();
+      await loadData();
+      setInterval(updateTime, 1000);
+      setInterval(loadData, (config.refreshInterval || 30) * 1000);
+    }
+
+    window.addEventListener('DOMContentLoaded', init);
+  </script>
+</body>
+</html>

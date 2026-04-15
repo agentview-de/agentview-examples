@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23ff6b00'/%3E%3Ctext x='16' y='23' text-anchor='middle' font-size='20'%3E🍔%3C/text%3E%3C/svg%3E">
+  <title>FastFood Menu Board</title>
+  <style>
+    @font-face {
+      font-family: "Material Symbols Outlined";
+      font-style: normal;
+      font-weight: 300;
+      src: url("./assets/material-symbols-w300.woff2") format("woff2");
+    }
+
+    :root {
+      /* Base Colors (can be overridden by config) */
+      --bg: #0d0e12;
+      --surface: #15171d;
+      --accent: #ff6b00;
+      --accent-sec: #ffd000;
+      --text: #ffffff;
+      --text-dim: #9ca3af;
+      --line: rgba(255, 255, 255, 0.08);
+
+      /* Typography */
+      --font-ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      --font-display: "Impact", "Arial Black", sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      width: 100vw;
+      min-height: 100vh;
+      overflow: hidden;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-ui);
+    }
+
+    .material-symbols-outlined {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-family: "Material Symbols Outlined";
+      font-size: 24px;
+      font-style: normal;
+      font-weight: 300;
+      line-height: 1;
+      text-transform: none;
+      white-space: nowrap;
+      font-variation-settings: "FILL" 0, "wght" 300, "GRAD" 0, "opsz" 24;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Layout */
+    .board {
+      display: flex;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* Left: Promo Pane */
+    .promo-pane {
+      width: 35%;
+      height: 100%;
+      position: relative;
+      background: #000;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: 10px 0 30px rgba(0,0,0,0.5);
+      z-index: 5;
+    }
+
+    .promo-slides {
+      position: absolute;
+      inset: 0;
+    }
+
+    .promo-slide {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      transition: opacity 1s ease-in-out;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+    }
+
+    .promo-slide.active {
+      opacity: 1;
+    }
+
+    .promo-image {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      filter: brightness(0.7) contrast(1.1);
+      transform: scale(1.05); /* Slight zoom for image */
+    }
+
+    /* Slow pan animation for active images */
+    @keyframes panImage {
+      0% { transform: scale(1.05) translate(0, 0); }
+      100% { transform: scale(1.1) translate(-2%, -2%); }
+    }
+
+    .promo-slide.active .promo-image {
+      animation: panImage 10s linear infinite alternate;
+    }
+
+    .promo-overlay {
+      position: relative;
+      z-index: 2;
+      padding: 40px;
+      background: linear-gradient(to top, rgba(0,0,0,0.95), rgba(0,0,0,0.4) 70%, transparent);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .promo-tagbox {
+      align-self: flex-start;
+      background: var(--accent);
+      color: #fff;
+      font-family: var(--font-display);
+      text-transform: uppercase;
+      padding: 6px 12px;
+      border-radius: 4px;
+      font-size: 16px;
+      letter-spacing: 2px;
+      margin-bottom: 8px;
+    }
+
+    .promo-title {
+      font-family: var(--font-display);
+      font-size: 64px;
+      line-height: 0.95;
+      text-transform: uppercase;
+      color: #fff;
+      text-shadow: 2px 2px 10px rgba(0,0,0,0.7);
+      white-space: pre-line;
+    }
+
+    .promo-desc {
+      font-size: 18px;
+      color: rgba(255,255,255,0.8);
+      line-height: 1.4;
+      max-width: 90%;
+      margin-bottom: 10px;
+    }
+
+    .promo-price {
+      font-family: var(--font-display);
+      font-size: 48px;
+      color: var(--accent-sec);
+      text-shadow: 0 0 20px rgba(255, 208, 0, 0.4);
+    }
+
+    .promo-pane-header {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      padding: 40px;
+      z-index: 3;
+    }
+
+    .brand-name {
+      font-family: var(--font-display);
+      font-size: 32px;
+      color: var(--accent);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+    /* Right: Menu Pane */
+    .menu-pane {
+      width: 65%;
+      height: 100%;
+      background: var(--bg);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .menu-pane-header {
+      padding: 40px 50px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .menu-title {
+      font-family: var(--font-display);
+      font-size: 42px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text);
+    }
+
+    .clock {
+      font-size: 24px;
+      font-weight: 600;
+      color: var(--text-dim);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .menu-content {
+      flex: 1;
+      padding: 30px 50px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 40px 60px;
+      overflow: hidden;
+      align-content: start;
+    }
+
+    .category {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .cat-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid var(--surface);
+    }
+
+    .cat-icon {
+      color: var(--accent);
+      font-size: 28px;
+    }
+
+    .cat-name {
+      font-family: var(--font-display);
+      font-size: 24px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--accent);
+    }
+
+    .item-list {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .item {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .item-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 16px;
+    }
+
+    .item-name {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text);
+      position: relative;
+    }
+
+    .item.highlight .item-name {
+      color: var(--accent-sec);
+    }
+
+    .item-tags {
+      display: inline-flex;
+      gap: 6px;
+      margin-left: 10px;
+      vertical-align: middle;
+    }
+
+    .tag {
+      background: var(--surface);
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      font-size: 11px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: bold;
+    }
+
+    .item-dots {
+      flex: 1;
+      border-bottom: 2px dotted var(--line);
+      opacity: 0.5;
+    }
+
+    .item-price {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--text);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .item.highlight .item-price {
+      color: var(--accent-sec);
+    }
+
+    .item-desc {
+      font-size: 14px;
+      color: var(--text-dim);
+    }
+
+    /* Footer */
+    .footer {
+      padding: 15px 50px;
+      background: var(--surface);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 14px;
+      color: var(--text-dim);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      border-top: 1px solid var(--line);
+    }
+
+    .loading {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      background: var(--bg);
+      display: grid;
+      place-items: center;
+      font-family: var(--font-display);
+      font-size: 32px;
+      color: var(--accent);
+      text-transform: uppercase;
+      transition: opacity 0.5s ease;
+    }
+    .loading.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    /* Portrait support (Fallback if rotated) */
+    @media (max-aspect-ratio: 1/1) {
+      .board { flex-direction: column; }
+      .promo-pane { width: 100%; height: 35%; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border-bottom: 2px solid var(--accent); }
+      .menu-pane { width: 100%; height: 65%; }
+      .promo-title { font-size: 42px; }
+      .promo-price { font-size: 36px; }
+      .menu-title { font-size: 32px; }
+      .menu-content { padding: 20px; gap: 30px; grid-template-columns: 1fr; }
+      .menu-pane-header { padding: 20px; }
+      .footer { padding: 15px 20px; }
+    }
+    
+    @media (max-width: 1200px) and (min-aspect-ratio: 1/1) {
+       .promo-title { font-size: 48px; }
+       .menu-content { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="loading" id="loading">Initializing...</div>
+
+  <div class="board">
+    <!-- Left Pane -->
+    <div class="promo-pane">
+      <div class="promo-pane-header">
+        <div class="brand-name" id="brand-name">BRAND NAME</div>
+      </div>
+      <div class="promo-slides" id="promo-container">
+        <!-- Slides generated via JS -->
+      </div>
+    </div>
+
+    <!-- Right Pane -->
+    <div class="menu-pane">
+      <div class="menu-pane-header">
+        <div class="menu-title" id="page-title">Menu</div>
+        <div class="clock" id="clock">00:00</div>
+      </div>
+      <div class="menu-content" id="menu-container">
+        <!-- Categories generated via JS -->
+      </div>
+      <div class="footer">
+        <div id="footer-left">Open 24/7</div>
+        <div id="footer-right">website.com</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const defaultConfig = {
+      "title": "Neon Burger Menu",
+      "restaurantName": "NEON BURGER",
+      "locale": "en-US",
+      "currency": "$",
+      "fontUrl": "./assets/material-symbols-w300.woff2",
+      "theme": {
+        "backgroundColor": "#0d0e12",
+        "surfaceColor": "#15171d",
+        "accentColor": "#ff6b00",
+        "accentSecondary": "#ffd000",
+        "textColor": "#ffffff",
+        "textDim": "rgba(255, 255, 255, 0.6)"
+      },
+      "dataUrl": "",
+      "refreshInterval": 60,
+      "promotionRotationInterval": 8,
+      "promotions": [
+        {
+          "id": "promo-1",
+          "tagbox": "Meal Deal",
+          "title": "Double Stack\nCombo",
+          "description": "Our signature double cheeseburger + crispy fries + drink of choice.",
+          "price": 14.99,
+          "image": "./assets/burger_promo.png"
+        }
+      ],
+      "menu": [
+        {
+          "categoryName": "Burgers",
+          "icon": "lunch_dining",
+          "items": [
+            { "name": "Classic Cheeseburger", "details": "Beef patty, cheddar, lettuce, tomato", "price": 8.99 },
+            { "name": "Double Stack", "details": "Two patties, double cheese, house sauce", "price": 11.49, "highlight": true },
+            { "name": "Spicy Inferno", "details": "Jalapeños, pepper jack, spicy mayo", "price": 10.99 },
+            { "name": "Crispy Chicken", "details": "Fried chicken breast, pickles, slaw", "price": 9.49 },
+            { "name": "Plant-Based Patty", "details": "Vegan patty, clean ingredients", "price": 10.49, "tags": ["VG"] }
+          ]
+        },
+        {
+          "categoryName": "Sides & Share",
+          "icon": "grocery",
+          "items": [
+            { "name": "Crispy Fries", "details": "Small / Large", "price": 3.49 },
+            { "name": "Loaded Cheese Fries", "details": "Cheese sauce, bacon bits, scallions", "price": 5.99 },
+            { "name": "Onion Rings", "details": "Beer-battered with ranch dip", "price": 4.99 },
+            { "name": "Chicken Tenders", "details": "4 pieces with choice of sauce", "price": 6.49 }
+          ]
+        },
+        {
+          "categoryName": "Drinks & Shakes",
+          "icon": "local_cafe",
+          "items": [
+            { "name": "Fountain Drink", "details": "Unlimited Refills", "price": 2.49 },
+            { "name": "Craft Sodas", "details": "Bottle", "price": 3.49 },
+            { "name": "Vanilla Bean Shake", "details": "Hand-spun", "price": 5.49 },
+            { "name": "Double Choc Shake", "details": "Rich chocolate fudge", "price": 5.49 }
+          ]
+        }
+      ],
+      "footer": {
+        "hours": "Open Daily 10:30 AM - Midnight",
+        "website": "neonburger.com"
+      }
+    };
+
+    let config = defaultConfig;
+    let slideIndex = 0;
+    let promoTimer = null;
+
+    function applyTheme() {
+      const root = document.documentElement;
+      if (config.theme) {
+        if(config.theme.backgroundColor) root.style.setProperty('--bg', config.theme.backgroundColor);
+        if(config.theme.surfaceColor) root.style.setProperty('--surface', config.theme.surfaceColor);
+        if(config.theme.accentColor) root.style.setProperty('--accent', config.theme.accentColor);
+        if(config.theme.accentSecondary) root.style.setProperty('--accent-sec', config.theme.accentSecondary);
+        if(config.theme.textColor) root.style.setProperty('--text', config.theme.textColor);
+        if(config.theme.textDim) root.style.setProperty('--text-dim', config.theme.textDim);
+      }
+    }
+
+    function rotatePromotions() {
+      const slides = document.querySelectorAll('.promo-slide');
+      if(slides.length === 0) return;
+      
+      slides.forEach(s => s.classList.remove('active'));
+      slideIndex = (slideIndex + 1) % slides.length;
+      slides[slideIndex].classList.add('active');
+    }
+
+    function formatPrice(val) {
+      if(!config.currency) return val;
+      const num = Number(val);
+      if(isNaN(num)) return val;
+      return config.currency + num.toFixed(2);
+    }
+
+    function renderPromotions() {
+      const container = document.getElementById('promo-container');
+      const promos = config.promotions || [];
+      if(promos.length === 0) {
+        container.innerHTML = `<div class="promo-slide active"><div class="promo-overlay"><div class="promo-title">Welcome</div></div></div>`;
+        return;
+      }
+
+      container.innerHTML = promos.map((p, index) => {
+        const cls = index === 0 ? 'promo-slide active' : 'promo-slide';
+        return `
+          <div class="${cls}">
+            ${p.image ? `<img src="${p.image}" class="promo-image" alt="Promo">` : ''}
+            <div class="promo-overlay">
+              ${p.tagbox ? `<div class="promo-tagbox">${p.tagbox}</div>` : ''}
+              <div class="promo-title">${p.title || ''}</div>
+              ${p.description ? `<div class="promo-desc">${p.description}</div>` : ''}
+              ${p.price ? `<div class="promo-price">${formatPrice(p.price)}</div>` : ''}
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      slideIndex = 0;
+      const intervalSec = config.promotionRotationInterval || 10;
+      if(promoTimer) clearInterval(promoTimer);
+      if(promos.length > 1) {
+        promoTimer = setInterval(rotatePromotions, intervalSec * 1000);
+      }
+    }
+
+    function renderMenu() {
+      const container = document.getElementById('menu-container');
+      const categories = config.menu || [];
+      
+      container.innerHTML = categories.map(cat => {
+        const itemsHtml = (cat.items || []).map(item => {
+          const isHigh = item.highlight ? 'highlight' : '';
+          const tags = (item.tags || []).map(t => `<span class="tag">${t}</span>`).join('');
+          
+          return `
+            <div class="item ${isHigh}">
+              <div class="item-row">
+                <span class="item-name">${item.name} ${tags}</span>
+                <div class="item-dots"></div>
+                <span class="item-price">${formatPrice(item.price)}</span>
+              </div>
+              ${item.details ? `<div class="item-desc">${item.details}</div>` : ''}
+            </div>
+          `;
+        }).join('');
+
+        return `
+          <div class="category">
+            <div class="cat-header">
+              ${cat.icon ? `<span class="material-symbols-outlined cat-icon" aria-hidden="true">${cat.icon}</span>` : ''}
+              <span class="cat-name">${cat.categoryName}</span>
+            </div>
+            <div class="item-list">
+              ${itemsHtml}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderStatic() {
+      document.title = config.title || "FastFood Menu Board";
+      document.getElementById('brand-name').textContent = config.restaurantName || "RESTAURANT";
+      
+      if(config.footer) {
+        document.getElementById('footer-left').textContent = config.footer.hours || "";
+        document.getElementById('footer-right').textContent = config.footer.website || "";
+      }
+    }
+
+    function updateClock() {
+      const now = new Date();
+      const locale = config.locale || navigator.language || 'en-US';
+      const timeStr = new Intl.DateTimeFormat(locale, {
+        hour: '2-digit', minute: '2-digit', hour12: false
+      }).format(now);
+      document.getElementById('clock').textContent = timeStr;
+    }
+
+    async function loadConfig() {
+      try {
+        const res = await fetch('./config.json', { cache: "no-store" });
+        if(!res.ok) throw new Error("Config not found");
+        const json = await res.json();
+        config = { ...config, ...json };
+      } catch (e) {
+        console.warn("Failed to load config.json", e);
+      }
+    }
+
+    async function loadLiveData() {
+      if(!config.dataUrl) return;
+      try {
+        const res = await fetch(config.dataUrl, { cache: "no-store" });
+        const json = await res.json();
+        config = { ...config, ...json };
+        renderAll();
+      } catch(e) {
+        console.warn("Live data failed", e);
+      }
+    }
+
+    function renderAll() {
+      applyTheme();
+      renderStatic();
+      renderMenu();
+      renderPromotions();
+    }
+
+    async function init() {
+      await loadConfig();
+      renderAll();
+      document.getElementById('loading').classList.add('hidden');
+      
+      setInterval(updateClock, 1000);
+      updateClock();
+
+      const refreshSec = config.refreshInterval || 60;
+      setInterval(async () => {
+        await loadConfig();
+        await loadLiveData();
+        renderAll();
+      }, refreshSec * 1000);
+    }
+
+    window.addEventListener('DOMContentLoaded', init);
+  </script>
+</body>
+</html>

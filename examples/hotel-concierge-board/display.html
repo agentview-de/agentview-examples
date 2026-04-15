@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>The Grand Continental | Concierge</title>
+  <style>
+    :root {
+      --bg: #050A1A;
+      --surface: rgba(28, 40, 70, 0.7);
+      --primary: #D4AF37; /* Gold */
+      --secondary: #FFFFFF;
+      --accent: #AB8D2A;
+      --text-main: #FFFFFF;
+      --text-muted: #A5A5A5;
+      --glass-border: rgba(212, 175, 55, 0.3);
+      --glass-bg: rgba(255, 255, 255, 0.08);
+      
+      --font-stack: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif;
+      --transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+    }
+
+    * { 
+      box-sizing: border-box; 
+      margin: 0; 
+      padding: 0; 
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text-main);
+      font-family: var(--font-stack);
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    .bg-image {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: url('./assets/hotel_bg.png') center/cover no-repeat;
+      z-index: -2;
+    }
+
+    .bg-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, rgba(5, 10, 26, 0.9) 0%, rgba(5, 10, 26, 0.6) 100%);
+      z-index: -1;
+    }
+
+    header {
+      padding: 40px 60px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      backdrop-filter: blur(25px) saturate(180%);
+      -webkit-backdrop-filter: blur(25px) saturate(180%);
+      background: rgba(5, 10, 26, 0.4);
+      border-bottom: 1px solid var(--glass-border);
+    }
+
+    .brand {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .stars {
+      color: var(--primary);
+      font-size: 14px;
+      letter-spacing: 4px;
+      margin-bottom: 4px;
+    }
+
+    .brand h1 {
+      font-size: 36px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      color: var(--primary);
+      text-transform: uppercase;
+    }
+
+    .brand p {
+      font-size: 14px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 3px;
+    }
+
+    .clock-widget {
+      text-align: right;
+    }
+
+    .clock {
+      font-size: 48px;
+      font-weight: 200;
+      color: var(--secondary);
+    }
+
+    .date {
+      font-size: 16px;
+      color: var(--primary);
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    main {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr 1.2fr;
+      padding: 40px 60px;
+      gap: 40px;
+      overflow: hidden;
+    }
+
+    .glass-card {
+      background: var(--glass-bg);
+      backdrop-filter: blur(40px) saturate(180%);
+      -webkit-backdrop-filter: blur(40px) saturate(180%);
+      border: 1px solid var(--glass-border);
+      border-radius: 32px;
+      padding: 32px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    .section-title {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--primary);
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    /* Weather */
+    .weather-card {
+      padding: 24px 32px;
+      margin-bottom: 30px;
+      background: rgba(212, 175, 55, 0.05);
+      border-color: rgba(212, 175, 55, 0.2);
+    }
+
+    .weather-row {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+    }
+
+    .w-temp { font-size: 52px; font-weight: 200; color: var(--secondary); }
+    .w-info { flex: 1; }
+    .w-city { font-size: 18px; font-weight: 600; text-transform: uppercase; color: var(--primary); }
+    .w-cond { font-size: 14px; color: var(--text-muted); }
+
+    /* Transport List */
+    .transport-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .t-item {
+      display: grid;
+      grid-template-columns: 40px 1fr 80px 100px;
+      align-items: center;
+      padding: 16px 20px;
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: 16px;
+      transition: var(--transition);
+      border: 1px solid transparent;
+    }
+
+    .t-item:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(212, 175, 55, 0.2);
+      transform: scale(1.02);
+    }
+
+    .t-dest { font-weight: 600; font-size: 16px; }
+    .t-time { font-weight: 300; font-size: 18px; text-align: center; }
+    .t-status { 
+      font-size: 12px; 
+      text-align: right; 
+      text-transform: uppercase; 
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    .t-status.delayed { color: #FF3B30; }
+
+    /* Events */
+    .ev-list { display: flex; flex-direction: column; gap: 20px; }
+    .ev-item {
+      display: flex;
+      gap: 24px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    .ev-item:last-child { border-bottom: none; }
+
+    .ev-time { 
+      font-size: 14px; 
+      font-weight: 700; 
+      color: var(--primary); 
+      width: 100px; 
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .ev-body h3 { font-size: 18px; font-weight: 600; margin-bottom: 4px; }
+    .ev-loc { font-size: 14px; color: var(--text-muted); display: flex; align-items: center; gap: 6px; }
+
+    /* Notices */
+    .note-list { margin-top: 30px; display: grid; gap: 16px; }
+    .note-item {
+      padding: 20px;
+      background: linear-gradient(135deg, rgba(212, 175, 55, 0.1), transparent);
+      border-radius: 20px;
+      border: 1px solid rgba(212, 175, 55, 0.1);
+    }
+    .note-item h4 { color: var(--primary); margin-bottom: 8px; font-size: 16px; text-transform: uppercase; }
+    .note-item p { font-size: 14px; line-height: 1.5; color: var(--text-muted); }
+
+    footer {
+      padding: 20px 60px;
+      background: rgba(5, 10, 26, 0.6);
+      border-top: 1px solid var(--glass-border);
+      text-align: center;
+      font-size: 14px;
+      color: var(--primary);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      backdrop-filter: blur(10px);
+    }
+
+  </style>
+</head>
+<body>
+
+  <div class="bg-image"></div>
+  <div class="bg-overlay"></div>
+
+  <header>
+    <div class="brand">
+      <div class="stars">★★★★★</div>
+      <h1 id="hotel-name">The Grand Continental</h1>
+      <p>Elevated Hospitality</p>
+    </div>
+    <div class="clock-widget">
+      <div class="clock" id="clock">00:00</div>
+      <div class="date" id="date">Monday, 1st January</div>
+    </div>
+  </header>
+
+  <main>
+    <div class="col">
+      <div class="glass-card weather-card">
+        <div class="weather-row" id="weather-box">
+          <!-- Weather injected -->
+        </div>
+      </div>
+
+      <div class="glass-card">
+        <div class="section-title">Travel Departures</div>
+        <div class="transport-list" id="transport-list">
+          <!-- Transport injected -->
+        </div>
+      </div>
+    </div>
+
+    <div class="col">
+      <div class="glass-card">
+        <div class="section-title">Today's Schedule</div>
+        <div class="ev-list" id="events-list">
+          <!-- Events injected -->
+        </div>
+
+        <div class="note-list" id="notices-list">
+          <!-- Notices injected -->
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer id="footerText">Welcome to the Continental</footer>
+
+  <script>
+    const defaultConfig = {
+      "hotelName": "GRAND CONTINENTAL HOTEL",
+      "weather": { "city": "Paris", "temperature": "22°C", "condition": "Cloudy" },
+      "events": [
+        { "time": "08:00 - 11:00", "title": "Champagne Breakfast", "location": "Le Jardin Rooftop" },
+        { "time": "18:00 - 23:00", "title": "Jazz & Cocktails", "location": "The Continental Bar" }
+      ],
+      "transport": [
+        { "destination": "London (LHR)", "time": "14:20", "status": "On Time" },
+        { "destination": "Geneva Central", "time": "16:05", "status": "Boarding" }
+      ],
+      "notices": [
+        { "title": "Skyline Spa Access", "content": "Signature Gold treatments now available in the Executive Lounge." }
+      ],
+      "footer": "Excellence in Hospitality since 1924."
+    };
+
+    let config = defaultConfig;
+
+    function applyTheme() {
+      const root = document.documentElement;
+      if (config.theme) {
+        if(config.theme.primary) root.style.setProperty('--primary', config.theme.primary);
+      }
+    }
+
+    function renderStatic() {
+      document.getElementById('hotel-name').textContent = config.hotelName || "Hotel";
+      document.getElementById('footerText').textContent = config.footer || "";
+    }
+
+    function renderWeather() {
+      const w = config.weather || {};
+      const el = document.getElementById('weather-box');
+      el.innerHTML = `
+        <div class="w-temp">${w.temperature || '--'}</div>
+        <div class="w-info">
+          <div class="w-city">${w.city || '--'}</div>
+          <div class="w-cond">${w.condition || '--'}</div>
+        </div>
+      `;
+    }
+
+    function renderTransport() {
+      const trans = config.transport || [];
+      const el = document.getElementById('transport-list');
+      el.innerHTML = trans.map(t => `
+        <div class="t-item">
+          <span style="font-size:20px">✈️</span>
+          <span class="t-dest">${t.destination}</span>
+          <span class="t-time">${t.time}</span>
+          <span class="t-status">${t.status}</span>
+        </div>
+      `).join('');
+    }
+
+    function renderEvents() {
+      const evs = config.events || [];
+      const el = document.getElementById('events-list');
+      el.innerHTML = evs.map(e => `
+        <div class="ev-item">
+          <div class="ev-time">${e.time}</div>
+          <div class="ev-body">
+            <h3>${e.title}</h3>
+            <div class="ev-loc">📍 ${e.location}</div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function renderNotices() {
+      const nots = config.notices || [];
+      const el = document.getElementById('notices-list');
+      el.innerHTML = nots.map(n => `
+        <div class="note-item">
+          <h4>${n.title}</h4>
+          <p>${n.content}</p>
+        </div>
+      `).join('');
+    }
+
+    function updateTime() {
+      const now = new Date();
+      document.getElementById('clock').textContent = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', hour12: false});
+      document.getElementById('date').textContent = now.toLocaleDateString([], {weekday: 'long', day: 'numeric', month: 'long'});
+    }
+
+    async function loadData() {
+      try {
+        const res = await fetch('./config.json', { cache: 'no-store' });
+        if(res.ok) config = { ...config, ...await res.json() };
+      } catch(e) {}
+      applyTheme();
+      renderStatic();
+      renderWeather();
+      renderTransport();
+      renderEvents();
+      renderNotices();
+    }
+
+    async function init() {
+      // Immediate render
+      applyTheme();
+      renderStatic();
+      renderWeather();
+      renderTransport();
+      renderEvents();
+      renderNotices();
+      updateTime();
+      
+      await loadData();
+      setInterval(updateTime, 1000);
+      setInterval(loadData, (config.refreshInterval || 300) * 1000);
+    }
+
+    window.addEventListener('DOMContentLoaded', init);
+  </script>
+</body>
+</html>

@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Transit Monitor | Global Hub</title>
+  <style>
+    :root {
+      --bg: #010409;
+      --surface: rgba(28, 28, 30, 0.7);
+      --primary: #FFD60A;
+      --accent: #FF453A;
+      --success: #32D74B;
+      --text-main: #FFFFFF;
+      --text-muted: #8E8E93;
+      --glass-border: rgba(255, 255, 255, 0.1);
+      
+      --font-stack: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif;
+      --transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    * { 
+      box-sizing: border-box; 
+      margin: 0; 
+      padding: 0; 
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body {
+      background: var(--bg);
+      background-attachment: fixed;
+      color: var(--text-main);
+      font-family: var(--font-stack);
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    /* Premium Mesh Gradient Background */
+    .mesh-bg {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+      background-color: #010409;
+      background-image: 
+        radial-gradient(at 0% 0%, hsla(210,100%,10%,1) 0, transparent 50%), 
+        radial-gradient(at 50% 0%, hsla(220,100%,15%,1) 0, transparent 50%), 
+        radial-gradient(at 100% 0%, hsla(240,100%,10%,1) 0, transparent 50%),
+        radial-gradient(at 50% 100%, hsla(0,0%,5%,1) 0, transparent 50%);
+    }
+
+    header {
+      padding: 30px 60px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      backdrop-filter: blur(20px) saturate(180%);
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
+      background: rgba(1, 4, 9, 0.6);
+      border-bottom: 1px solid var(--glass-border);
+      z-index: 10;
+    }
+
+    .station-brand h1 {
+      font-size: 32px;
+      font-weight: 700;
+      letter-spacing: -1px;
+      text-transform: uppercase;
+    }
+
+    .station-brand p {
+      font-size: 14px;
+      color: var(--primary);
+      text-transform: uppercase;
+      letter-spacing: 3px;
+      font-weight: 600;
+      margin-top: 4px;
+    }
+
+    .clock {
+      font-size: 52px;
+      font-weight: 200;
+      font-variant-numeric: tabular-nums;
+      color: var(--text-main);
+      text-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
+    }
+
+    main {
+      flex: 1;
+      padding: 40px 60px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .table-header {
+      display: grid;
+      grid-template-columns: 120px 1.5fr 1fr 120px 180px;
+      padding: 0 24px 16px 24px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .departure-list {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 20px;
+      overflow-y: hidden;
+    }
+
+    .departure-row {
+      display: grid;
+      grid-template-columns: 120px 1.5fr 1fr 120px 180px;
+      align-items: center;
+      padding: 20px 24px;
+      background: var(--surface);
+      backdrop-filter: blur(20px) saturate(180%);
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
+      border: 1px solid var(--glass-border);
+      border-radius: 20px;
+      transition: var(--transition);
+      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
+    }
+
+    .departure-row.alert {
+      border-color: rgba(255, 69, 58, 0.3);
+      background: rgba(255, 69, 58, 0.05);
+      animation: pulse-border 3s infinite;
+    }
+
+    @keyframes pulse-border {
+      0% { border-color: rgba(255, 69, 58, 0.3); }
+      50% { border-color: rgba(255, 69, 58, 0.8); }
+      100% { border-color: rgba(255, 69, 58, 0.3); }
+    }
+
+    .line-badge {
+      display: grid;
+      place-items: center;
+      padding: 6px 0;
+      width: 80px;
+      border-radius: 12px;
+      font-size: 20px;
+      font-weight: 800;
+      color: white;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+    }
+
+    .destination { font-size: 32px; font-weight: 600; letter-spacing: -0.5px; }
+    .dep-time { font-size: 32px; font-weight: 700; font-variant-numeric: tabular-nums; }
+    .track { font-size: 22px; font-weight: 500; color: var(--text-muted); text-align: center; }
+    .status { font-size: 20px; font-weight: 700; text-align: right; text-transform: uppercase; }
+    
+    .status.delay { color: var(--accent); }
+    .status.ontime { color: var(--success); }
+
+    /* Footer Ticker */
+    footer {
+      padding: 20px 60px;
+      background: rgba(1, 4, 9, 0.8);
+      backdrop-filter: blur(30px);
+      border-top: 1px solid var(--glass-border);
+      overflow: hidden;
+      white-space: nowrap;
+    }
+
+    .ticker-content {
+      display: inline-block;
+      padding-left: 100%;
+      animation: ticker-roll 40s linear infinite;
+      font-size: 18px;
+      font-weight: 500;
+      color: var(--primary);
+      text-transform: uppercase;
+      letter-spacing: 2px;
+    }
+
+    @keyframes ticker-roll {
+      0% { transform: translate3d(0, 0, 0); }
+      100% { transform: translate3d(-100%, 0, 0); }
+    }
+
+  </style>
+</head>
+<body>
+
+  <div class="mesh-bg"></div>
+
+  <header>
+    <div class="station-brand">
+      <h1 id="station-name">Central Hub</h1>
+      <p>Operational Live Monitor</p>
+    </div>
+    <div class="clock" id="clock">00:00:00</div>
+  </header>
+
+  <main>
+    <div class="table-header">
+      <div>Line</div>
+      <div>Destination</div>
+      <div>Departure</div>
+      <div style="text-align: center;">Track</div>
+      <div style="text-align: right;">Status</div>
+    </div>
+    <div class="departure-list" id="departure-list">
+      <!-- Departures go here -->
+    </div>
+  </main>
+
+  <footer>
+    <div class="ticker-content" id="ticker-msg">System Operational. Welcome to the Central Hub. Check your boarding platform.</div>
+  </footer>
+
+  <script>
+    const defaultConfig = {
+      "stationName": "CENTRAL HUB TERMINAL",
+      "departures": [
+        { "line": "ICE 4", "destination": "Berlin Hbf", "time": "14:15", "track": "Track 4", "status": "On time", "color": "#005a9c", "isAlert": false },
+        { "line": "S1", "destination": "Flughafen / Airport", "time": "In 3 min", "track": "Track 2", "status": "On time", "color": "#1ea240", "isAlert": false },
+        { "line": "RE 7", "destination": "Hamburg Hbf", "time": "14:28", "track": "Track 8", "status": "+15 min", "color": "#e60000", "isAlert": true },
+        { "line": "U3", "destination": "City Center", "time": "In 5 min", "track": "Plat. A", "status": "On time", "color": "#ffd700", "isAlert": false },
+        { "line": "ICE 1", "destination": "München Hbf", "time": "14:40", "track": "Track 5", "status": "On time", "color": "#005a9c", "isAlert": false },
+        { "line": "S4", "destination": "West End", "time": "In 8 min", "track": "Track 1", "status": "Exp. 14:48", "color": "#8b008b", "isAlert": false }
+      ],
+      "alerts": ["Construction work on Line U3 between North and Central. Expect minor delays."]
+    };
+
+    let config = defaultConfig;
+
+    function renderBoard() {
+      document.getElementById('station-name').textContent = config.stationName || "HUB";
+      
+      const ticker = document.getElementById('ticker-msg');
+      ticker.textContent = (config.alerts || []).join(" | ") || "System Operational.";
+
+      const listEl = document.getElementById('departure-list');
+      listEl.innerHTML = (config.departures || []).map(d => {
+        const isDelay = d.status.includes('+') || d.status.toLowerCase().includes('canc') || d.isAlert;
+        return `
+          <div class="departure-row ${d.isAlert ? 'alert' : ''}">
+            <div class="line-badge" style="background: ${d.color || '#444'}">${d.line}</div>
+            <div class="destination">${d.destination}</div>
+            <div class="dep-time">${d.time}</div>
+            <div class="track">${d.track}</div>
+            <div class="status ${isDelay ? 'delay' : 'ontime'}">${d.status}</div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function updateTime() {
+      const now = new Date();
+      document.getElementById('clock').textContent = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second: '2-digit', hour12: false});
+    }
+
+    async function loadData() {
+      try {
+        const res = await fetch('./config.json', { cache: 'no-store' });
+        if(res.ok) {
+           const newData = await res.json();
+           config = { ...config, ...newData };
+        }
+      } catch(e) {}
+      renderBoard();
+    }
+
+    async function init() {
+      renderBoard();
+      updateTime();
+      await loadData();
+      setInterval(updateTime, 1000);
+      setInterval(loadData, (config.refreshInterval || 30) * 1000);
+    }
+
+    window.addEventListener('DOMContentLoaded', init);
+  </script>
+</body>
+</html>

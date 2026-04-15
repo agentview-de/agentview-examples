@@ -1,0 +1,37 @@
+{
+  "title": "Hotel Concierge | Digital Guest Info",
+  "hotelName": "GRAND CONTINENTAL HOTEL",
+  "theme": {
+    "background": "#050A1A",
+    "surface": "rgba(28, 40, 70, 0.7)",
+    "primary": "#D4AF37",
+    "secondary": "#ffffff",
+    "textMain": "#ffffff",
+    "textMuted": "#8e8e93",
+    "accent": "#ab8d2a"
+  },
+  "refreshInterval": 300,
+  "dataUrl": "",
+  "weather": {
+    "city": "Paris",
+    "temperature": "22°C",
+    "condition": "Cloudy",
+    "high": "25°C",
+    "icon": "cloud"
+  },
+  "events": [
+    { "time": "08:00 - 11:00", "title": "Champagne Breakfast Buffet", "location": "Le Jardin Rooftop" },
+    { "time": "15:00 - 16:30", "title": "Traditional Afternoon Tea", "location": "The Grand Atrium" },
+    { "time": "18:00 - 23:00", "title": "Vintage Cocktails & Live Jazz", "location": "The Continental Bar" }
+  ],
+  "transport": [
+    { "type": "flight_takeoff", "destination": "London (LHR)", "time": "14:20", "status": "On Time" },
+    { "type": "flight_takeoff", "destination": "New York (JFK)", "time": "15:10", "status": "Delayed" },
+    { "type": "train", "destination": "Geneva Central", "time": "16:05", "status": "Boarding" }
+  ],
+  "notices": [
+    { "title": "Skyline Spa Access", "content": "Complimentary access for all executive guests. Relax with our Signature Gold Infusion facial treatments." },
+    { "title": "Express Check-Out", "content": "For your convenience, checkout can be processed via the Grand App or directly through our concierge desk." }
+  ],
+  "footer": "Excellence in Hospitality since 1924. Your comfort is our world-class priority."
+}

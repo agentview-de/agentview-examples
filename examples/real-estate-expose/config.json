@@ -1,0 +1,60 @@
+{
+  "title": "Real Estate Exposé",
+  "agencyName": "Prime Properties",
+  "theme": {
+    "background": "#ffffff",
+    "surface": "#f8f9fa",
+    "primary": "#bca37f",
+    "secondary": "#2c3e50",
+    "accent": "#e67e22",
+    "textMain": "#333333",
+    "textMuted": "#7f8c8d"
+  },
+  "refreshInterval": 300,
+  "slideInterval": 10,
+  "dataUrl": "",
+  "featuresIconMap": {
+    "pool": "pool",
+    "garage": "garage",
+    "garden": "yard",
+    "balcony": "balcony",
+    "fireplace": "fireplace"
+  },
+  "properties": [
+    {
+      "id": "prop-001",
+      "title": "Modern Luxury Villa with Infinity Pool",
+      "location": "Beverly Hills, CA",
+      "price": "$5,200,000",
+      "stats": [
+        { "label": "Rooms", "value": "6" },
+        { "label": "Living Area", "value": "450 m²" },
+        { "label": "Lot Size", "value": "1200 m²" },
+        { "label": "Energy Class", "value": "A+" }
+      ],
+      "features": ["pool", "garage", "garden"],
+      "description": "An architectural masterpiece offering panoramic sunset views, state-of-the-art smart home integration, and unparalleled privacy.",
+      "image": "./assets/house.png"
+    },
+    {
+      "id": "prop-002",
+      "title": "Exclusive Penthouse Downtown",
+      "location": "Central District, NY",
+      "price": "$3,850,000",
+      "stats": [
+        { "label": "Rooms", "value": "4" },
+        { "label": "Living Area", "value": "280 m²" },
+        { "label": "Floor", "value": "42nd" },
+        { "label": "Energy Class", "value": "A" }
+      ],
+      "features": ["balcony", "garage"],
+      "description": "Luxurious penthouse featuring floor-to-ceiling windows, a private rooftop terrace, and exquisite modern finishes throughout.",
+      "image": ""
+    }
+  ],
+  "contact": {
+    "phone": "+1 (555) 123-4567",
+    "website": "www.prime-properties.com",
+    "qrUrl": "https://example.com/scan-me"
+  }
+}

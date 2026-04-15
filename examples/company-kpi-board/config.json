@@ -1,0 +1,41 @@
+{
+  "title": "Corporate Dashboard | Alabaster",
+  "companyName": "ACME GLOBAL HUB",
+  "theme": {
+    "background": "#F2F2F7",
+    "surface": "rgba(255, 255, 255, 0.75)",
+    "primary": "#007AFF",
+    "secondary": "#FFFFFF",
+    "success": "#34C759",
+    "warning": "#FF9500",
+    "danger": "#FF3B30",
+    "textMain": "#1C1C1E",
+    "textMuted": "#68686D"
+  },
+  "refreshInterval": 300,
+  "dataUrl": "",
+  "kpis": [
+    { "label": "Q3 REVENUE", "value": "$12.4M", "trend": "+8.2%", "status": "success", "icon": "monitoring" },
+    { "label": "ACTIVE CLIENTS", "value": "2,840", "trend": "+12", "status": "success", "icon": "groups" },
+    { "label": "SYSTEM UPTIME", "value": "99.99%", "trend": "Stable", "status": "success", "icon": "dns" },
+    { "label": "PENDING TASKS", "value": "128", "trend": "+14", "status": "warning", "icon": "task_alt" }
+  ],
+  "announcements": [
+    {
+      "title": "Strategy Townhall",
+      "date": "Tomorrow, 10:00",
+      "content": "Quarterly review and 2026 outlook. Attendance is highly encouraged."
+    },
+    {
+      "title": "Security Update",
+      "date": "Ongoing",
+      "content": "Please ensure all VPN clients are updated to version 4.2 by EOD."
+    }
+  ],
+  "meetingRooms": [
+    { "name": "Executive Alpha", "status": "occupied", "currentMeeting": "Budget Review", "time": "14:00 - 16:00" },
+    { "name": "Collaboration Beta", "status": "free", "currentMeeting": "Available", "time": "Until 17:30" },
+    { "name": "Innovation Gamma", "status": "occupied", "currentMeeting": "Design Sprint", "time": "15:00 - 18:00" }
+  ],
+  "ticker": "GLOBAL OPS: ALL SYSTEMS NOMINAL | NASDAQ: ACME +0.8% | FTSE: +0.4%"
+}

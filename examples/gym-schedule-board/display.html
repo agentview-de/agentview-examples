@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pulse Fitness | Dashboard</title>
+  <style>
+    :root {
+      --bg: #000000;
+      --surface: rgba(28, 28, 30, 0.7);
+      --primary: #007AFF;
+      --secondary: #FFFFFF;
+      --accent: #5856D6;
+      --text-main: #FFFFFF;
+      --text-muted: #8E8E93;
+      --glass-border: rgba(255, 255, 255, 0.15);
+      --glass-bg: rgba(255, 255, 255, 0.08);
+      
+      --font-stack: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif;
+      --transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+    }
+
+    * { 
+      box-sizing: border-box; 
+      margin: 0; 
+      padding: 0; 
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text-main);
+      font-family: var(--font-stack);
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    .bg-image {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: url('./assets/apple_gym_bg.png') center/cover no-repeat;
+      z-index: -2;
+    }
+
+    .bg-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle at center, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.8) 100%);
+      z-index: -1;
+    }
+
+    header {
+      padding: 40px 60px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      backdrop-filter: blur(20px) saturate(180%);
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
+      background: rgba(0, 0, 0, 0.3);
+      border-bottom: 1px solid var(--glass-border);
+    }
+
+    .brand {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .brand h1 {
+      font-size: 32px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      color: var(--text-main);
+    }
+
+    .brand p {
+      font-size: 14px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin-top: 4px;
+    }
+
+    .clock {
+      font-size: 48px;
+      font-weight: 300;
+      font-variant-numeric: tabular-nums;
+      color: var(--text-main);
+    }
+
+    main {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1.8fr 1fr;
+      padding: 40px 60px;
+      gap: 40px;
+      overflow: hidden;
+    }
+
+    .glass-card {
+      background: var(--glass-bg);
+      backdrop-filter: blur(30px) saturate(180%);
+      -webkit-backdrop-filter: blur(30px) saturate(180%);
+      border: 1px solid var(--glass-border);
+      border-radius: 28px;
+      padding: 32px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .section-header {
+      margin-bottom: 24px;
+    }
+
+    .section-title {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .section-subtitle {
+      font-size: 14px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    /* Schedule Column */
+    .schedule-list {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      overflow-y: auto;
+      padding-right: 8px;
+    }
+
+    .schedule-list::-webkit-scrollbar {
+      width: 4px;
+    }
+    .schedule-list::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 2px;
+    }
+
+    .class-item {
+      display: flex;
+      align-items: center;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      padding: 24px;
+      border-radius: 20px;
+      gap: 24px;
+      transition: var(--transition);
+      cursor: default;
+    }
+
+    .class-item:hover {
+      background: rgba(255, 255, 255, 0.1);
+      transform: translateY(-2px);
+      border-color: rgba(255, 255, 255, 0.2);
+      box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+    }
+
+    .class-item.now {
+      background: rgba(0, 122, 255, 0.15);
+      border-color: rgba(0, 122, 255, 0.3);
+    }
+    
+    .class-item.now .status-dot {
+      background: var(--primary);
+      box-shadow: 0 0 10px var(--primary);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(1.2); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .c-time {
+      font-size: 28px;
+      font-weight: 600;
+      color: var(--text-main);
+      width: 90px;
+    }
+
+    .c-info { flex: 1; }
+    .c-name { font-size: 20px; font-weight: 600; color: var(--text-main); margin-bottom: 2px; }
+    .c-meta { font-size: 14px; color: var(--text-muted); font-weight: 500; }
+
+    .c-room {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 6px 14px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    /* Right Column Boxes */
+    .info-col {
+      display: flex;
+      flex-direction: column;
+      gap: 40px;
+    }
+
+    .quote-card {
+      padding: 32px;
+      background: linear-gradient(135deg, rgba(0, 122, 255, 0.15), rgba(88, 86, 214, 0.15));
+      border: 1px solid rgba(0, 122, 255, 0.2);
+    }
+
+    .quote-text {
+      font-size: 22px;
+      font-weight: 600;
+      line-height: 1.4;
+      text-align: center;
+      color: var(--text-main);
+      font-style: italic;
+    }
+
+    .occupancy-card {
+      gap: 20px;
+    }
+
+    .occ-val-display {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .occ-percentage {
+      font-size: 56px;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .occ-desc {
+      font-size: 16px;
+      color: var(--text-muted);
+      margin-bottom: 20px;
+    }
+
+    .progress-track {
+      height: 12px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+      overflow: hidden;
+      margin-top: 20px;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: var(--primary);
+      border-radius: 10px;
+      width: 0%;
+      transition: width 1.5s cubic-bezier(0.25, 1, 0.5, 1);
+      box-shadow: 0 0 15px rgba(0, 122, 255, 0.5);
+    }
+
+    .announcements-list {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      margin-top: 10px;
+    }
+
+    .a-item {
+      padding: 16px;
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: 16px;
+      font-size: 15px;
+      line-height: 1.5;
+      color: var(--text-main);
+      border-left: 3px solid var(--accent);
+    }
+
+  </style>
+</head>
+<body>
+
+  <div class="bg-image"></div>
+  <div class="bg-overlay"></div>
+
+  <header>
+    <div class="brand">
+      <h1 id="gym-name">PULSE FITNESS</h1>
+      <p>Premium Health & Performance</p>
+    </div>
+    <div class="clock" id="clock">00:00</div>
+  </header>
+
+  <main>
+    <div class="glass-card">
+      <div class="section-header">
+        <div class="section-title">Schedule</div>
+        <div class="section-subtitle">Today's classes and training sessions</div>
+      </div>
+      <div class="schedule-list" id="schedule-list">
+        <!-- Classes will be injected here -->
+      </div>
+    </div>
+
+    <div class="info-col">
+      <div class="glass-card quote-card">
+        <p class="quote-text" id="quote-box">"Strength does not come from winning. Your struggles develop your strengths."</p>
+      </div>
+
+      <div class="glass-card occupancy-card">
+        <div class="section-title">Club Capacity</div>
+        <div class="occ-val-display">
+          <span class="occ-percentage" id="occ-val">0%</span>
+        </div>
+        <p class="occ-desc" id="occ-label">Live update of current members</p>
+        <div class="progress-track">
+          <div class="progress-fill" id="occ-bar"></div>
+        </div>
+      </div>
+
+      <div class="glass-card">
+        <div class="section-title">Club News</div>
+        <div class="announcements-list" id="announcements-list">
+          <!-- Announcements will be injected here -->
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const defaultConfig = {
+      "title": "Pulse Performance | Digital Dashboard",
+      "gymName": "PULSE PERFORMANCE",
+      "theme": {
+        "primary": "#007AFF",
+        "accent": "#5856D6",
+        "textMain": "#ffffff",
+        "textMuted": "#8e8e93"
+      },
+      "schedule": [
+        { "time": "16:45", "duration": "45m", "class": "Advanced HIIT Burn", "trainer": "Marc Ross", "room": "Performance Zone", "status": "now" },
+        { "time": "17:30", "duration": "60m", "class": "Zen Flow Yoga", "trainer": "Elena V.", "room": "Mind & Body Studio", "status": "next" },
+        { "time": "17:45", "duration": "45m", "class": "Power Cycling", "trainer": "Chris Holt", "room": "The Arena", "status": "upcoming" },
+        { "time": "18:30", "duration": "60m", "class": "Elite Strength Group", "trainer": "Sarah J.", "room": "Weights Room", "status": "upcoming" },
+        { "time": "19:00", "duration": "30m", "class": "Core Blast 360", "trainer": "Marc Ross", "room": "Studio B", "status": "upcoming" }
+      ],
+      "motivationalQuote": "Your only limit is your mind. Push past the comfort zone to find the real athlete within.",
+      "announcements": [
+        { "text": "New state-of-the-art StairMasters installed in the Cardio Deck." },
+        { "text": "Post-workout Protein Shakes: 20% off all Vegan flavors this week!" },
+        { "text": "Reminder: The Spa & Sauna area closes at 10:00 PM for deep cleaning." }
+      ],
+      "gymOccupancy": {
+        "percentage": 68,
+        "label": "Moderate Traffic (Comfortable Training)"
+      }
+    };
+
+    let config = defaultConfig;
+
+    function applyTheme() {
+      const root = document.documentElement;
+      if (config.theme) {
+        if(config.theme.background) root.style.setProperty('--bg', config.theme.background);
+        if(config.theme.primary) root.style.setProperty('--primary', config.theme.primary);
+        if(config.theme.accent) root.style.setProperty('--accent', config.theme.accent);
+        if(config.theme.textMain) root.style.setProperty('--text-main', config.theme.textMain);
+        if(config.theme.textMuted) root.style.setProperty('--text-muted', config.theme.textMuted);
+      }
+    }
+
+    function renderStatic() {
+      document.title = config.title || "Gym Board";
+      document.getElementById('gym-name').textContent = config.gymName || "FITNESS CLUB";
+      document.getElementById('quote-box').textContent = config.motivationalQuote ? `"${config.motivationalQuote}"` : "";
+
+      if(config.gymOccupancy) {
+        document.getElementById('occ-val').textContent = config.gymOccupancy.percentage + "%";
+        document.getElementById('occ-label').textContent = config.gymOccupancy.label || "Occupancy";
+        
+        // Use timeout to trigger transition after render
+        setTimeout(() => {
+          document.getElementById('occ-bar').style.width = config.gymOccupancy.percentage + "%";
+        }, 100);
+        
+        // Color shifts for occupancy
+        let color = "var(--primary)";
+        if(config.gymOccupancy.percentage > 70) color = "#FF9500"; // Orange
+        if(config.gymOccupancy.percentage > 90) color = "#FF3B30"; // Red
+        document.getElementById('occ-bar').style.backgroundColor = color;
+      }
+    }
+
+    function renderSchedule() {
+      const sched = config.schedule || [];
+      const el = document.getElementById('schedule-list');
+      el.innerHTML = sched.map(s => {
+        const cls = s.status === 'now' ? 'now' : '';
+        return `
+          <div class="class-item ${cls}">
+            <div class="status-dot"></div>
+            <div class="c-time">${s.time}</div>
+            <div class="c-info">
+              <div class="c-name">${s.class}</div>
+              <div class="c-meta">${s.duration} • Trainer: ${s.trainer}</div>
+            </div>
+            <div class="c-room">${s.room}</div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderAnnouncements() {
+      const anns = config.announcements || [];
+      const el = document.getElementById('announcements-list');
+      el.innerHTML = anns.map(a => `<div class="a-item">${a.text}</div>`).join('');
+    }
+
+    function updateTime() {
+      const now = new Date();
+      document.getElementById('clock').textContent = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', hour12: false});
+    }
+
+    async function loadData() {
+      try {
+        const res = await fetch('./config.json', { cache: 'no-store' });
+        if(res.ok) {
+           const newData = await res.json();
+           config = { ...config, ...newData };
+        }
+      } catch(e) {
+        console.error("Failed to load local config", e);
+      }
+      
+      if(config.dataUrl) {
+        try {
+          const resLive = await fetch(config.dataUrl, { cache: 'no-store' });
+          if(resLive.ok) config = { ...config, ...await resLive.json() };
+        } catch(e) {
+           console.error("Failed to load live data", e);
+        }
+      }
+      
+      applyTheme();
+      renderStatic();
+      renderSchedule();
+      renderAnnouncements();
+    }
+
+    async function init() {
+      // First render with default data for immediate WOW effect
+      applyTheme();
+      renderStatic();
+      renderSchedule();
+      renderAnnouncements();
+      updateTime();
+      
+      // Then try to load external data
+      await loadData();
+      
+      setInterval(updateTime, 1000);
+      setInterval(loadData, (config.refreshInterval || 60) * 1000);
+    }
+
+    window.addEventListener('DOMContentLoaded', init);
+  </script>
+</body>
+</html>

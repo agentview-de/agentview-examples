@@ -1,0 +1,35 @@
+{
+  "title": "Wellness Board | Patient Care",
+  "clinicName": "METROPOLITAN CARE HUB",
+  "theme": {
+    "background": "#FAF9F6",
+    "surface": "rgba(255, 255, 255, 0.85)",
+    "primary": "#34C759",
+    "secondary": "#1D1D1F",
+    "accent": "#5AC8FA",
+    "success": "#34C759",
+    "textMain": "#1d1d1f",
+    "textMuted": "#86868b"
+  },
+  "refreshInterval": 30,
+  "dataUrl": "",
+  "calls": [
+    { "ticket": "A-124", "room": "Friendly Care Room 1", "doctor": "Dr. Sarah Miller", "status": "now" },
+    { "ticket": "B-098", "room": "Healing Suite 3", "doctor": "Dr. James Aris", "status": "now" },
+    { "ticket": "C-012", "room": "Comfort Lounge", "doctor": "", "status": "next" },
+    { "ticket": "A-125", "room": "Comfort Lounge", "doctor": "", "status": "next" }
+  ],
+  "notices": [
+    {
+      "title": "Mindful Living",
+      "content": "Join our weekly meditation sessions every Tuesday at 10:00 AM in the Healing Garden.",
+      "icon": "nature_people"
+    },
+    {
+      "title": "Nutrition Suite",
+      "content": "Our nutritionists are here to help you achieve your wellness goals with personalized plans.",
+      "icon": "restaurant"
+    }
+  ],
+  "ticker": "Good Morning. We are here to support your journey to wellness. Enjoy a complimentary herbal tea while you wait. Your health is our shared heartbeat."
+}

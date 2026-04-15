@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Brewery Pro | Taplist</title>
+  <style>
+    :root {
+      --bg: #1C1C1E;
+      --surface: rgba(28, 28, 30, 0.85);
+      --primary: #FF9F0A;
+      --text-main: #FFFFFF;
+      --text-muted: #AEAEB2;
+      --glass-border: rgba(255, 255, 255, 0.1);
+      
+      --font-stack: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif;
+      --font-mono: "SF Mono", "ui-monospace", "SFMono-Regular", Menlo, Monaco, Consolas, monospace;
+      --transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    * { 
+      box-sizing: border-box; 
+      margin: 0; padding: 0; 
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text-main);
+      font-family: var(--font-stack);
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Cinematic Background */
+    .bg-image {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: url('./assets/bg.png') center/cover no-repeat;
+      z-index: -2;
+    }
+
+    .bg-overlay {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: linear-gradient(to bottom, rgba(10, 10, 12, 0.4), rgba(10, 10, 12, 0.8));
+      z-index: -1;
+    }
+
+    header {
+      padding: 40px 60px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      backdrop-filter: blur(20px) saturate(180%);
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
+      background: rgba(10, 10, 12, 0.5);
+      border-bottom: 1px solid var(--glass-border);
+      z-index: 100;
+    }
+
+    .brand h1 {
+      font-size: 42px;
+      font-weight: 800;
+      letter-spacing: -1px;
+      text-transform: uppercase;
+      color: var(--primary);
+      text-shadow: 0 4px 12px rgba(255, 159, 10, 0.2);
+    }
+
+    .header-info {
+      text-align: right;
+    }
+
+    .sizes {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-muted);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    .specials {
+      font-size: 16px;
+      color: var(--primary);
+      font-weight: 600;
+    }
+
+    main {
+      flex: 1;
+      padding: 40px 60px;
+      overflow-y: auto;
+    }
+
+    .tap-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 24px;
+    }
+
+    .beer-card {
+      background: var(--surface);
+      backdrop-filter: blur(30px);
+      -webkit-backdrop-filter: blur(30px);
+      border: 1px solid var(--glass-border);
+      border-radius: 24px;
+      padding: 24px;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      transition: var(--transition);
+      cursor: default;
+    }
+
+    .beer-card:hover {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: rgba(255, 255, 255, 0.2);
+      transform: translateY(-2px);
+    }
+
+    .tap-badge {
+      width: 70px;
+      height: 70px;
+      background: var(--primary);
+      border-radius: 18px; /* Squircle appearance */
+      display: grid;
+      place-items: center;
+      font-size: 32px;
+      font-weight: 800;
+      color: #000;
+      flex-shrink: 0;
+      box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+      border: 1px solid rgba(255,255,255,0.2);
+    }
+
+    .beer-info {
+      flex: 1;
+    }
+
+    .b-name {
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: 2px;
+      letter-spacing: -0.5px;
+    }
+
+    .b-brewery {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--primary);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 4px;
+    }
+
+    .b-style {
+      font-size: 14px;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .beer-stats {
+      text-align: right;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .stat-item {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    .stat-val {
+      color: #FFF;
+      font-weight: 700;
+      margin-left: 6px;
+    }
+
+    /* Scrollbar */
+    main::-webkit-scrollbar { width: 8px; }
+    main::-webkit-scrollbar-track { background: transparent; }
+    main::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+
+    /* Responsive */
+    @media (max-width: 1000px) {
+      .tap-grid { grid-template-columns: 1fr; }
+      header { padding: 30px; }
+      .brand h1 { font-size: 32px; }
+    }
+
+    @media (max-width: 600px) {
+      main { padding: 20px; }
+      .beer-card { padding: 16px; gap: 12px; }
+      .tap-badge { width: 50px; height: 50px; font-size: 22px; }
+      .b-name { font-size: 20px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="bg-image"></div>
+  <div class="bg-overlay"></div>
+
+  <header>
+    <div class="brand">
+      <h1 id="bar-name">TAP HOUSE</h1>
+    </div>
+    <div class="header-info">
+      <div class="sizes" id="sizes"></div>
+      <div class="specials" id="specials"></div>
+    </div>
+  </header>
+
+  <main>
+    <div class="tap-grid" id="tap-list">
+      <!-- Taps injected via JS -->
+    </div>
+  </main>
+
+  <script>
+    const defaultConfig = {
+      "barName": "THE HOPPING PENGUIN",
+      "taps": [
+        { "number": 1, "name": "Nebula Haze", "brewery": "Cosmic Brewing", "style": "Hazy IPA", "abv": "6.8%", "ibu": "45", "color": "#FFCC00" },
+        { "number": 2, "name": "Midnight Oil", "brewery": "Black Forge", "style": "Imperial Stout", "abv": "10.2%", "ibu": "60", "color": "#332c25" },
+        { "number": 3, "name": "Crispy Boi", "brewery": "Local Pils Co.", "style": "Pilsner", "abv": "4.8%", "ibu": "25", "color": "#FFEA00" }
+      ],
+      "sizes": ["1/2 Pint", "Pint", "Pitcher"],
+      "specials": "Happy Hour until 18:00: All beers -20%!"
+    };
+
+    let config = defaultConfig;
+
+    function getContrastYIQ(hexcolor){
+      if(!hexcolor) return 'white';
+      hexcolor = hexcolor.replace("#", "");
+      if(hexcolor.length === 3) hexcolor = hexcolor.split('').map(c => c+c).join('');
+      var r = parseInt(hexcolor.substr(0,2),16);
+      var g = parseInt(hexcolor.substr(2,2),16);
+      var b = parseInt(hexcolor.substr(4,2),16);
+      var yiq = ((r*299)+(g*587)+(b*114))/1000;
+      return (yiq >= 128) ? '#000' : '#FFF';
+    }
+
+    function renderTaps() {
+      const el = document.getElementById('tap-list');
+      el.innerHTML = (config.taps || []).map(t => {
+        const tapColor = t.color || "#FF9F0A";
+        const txtColor = getContrastYIQ(tapColor);
+        return `
+          <div class="beer-card">
+            <div class="tap-badge" style="background: ${tapColor}; color: ${txtColor};">
+              ${t.number}
+            </div>
+            <div class="beer-info">
+              <div class="b-brewery">${t.brewery}</div>
+              <div class="b-name">${t.name}</div>
+              <div class="b-style">${t.style}</div>
+            </div>
+            <div class="beer-stats">
+              <div class="stat-item">ABV<span class="stat-val">${t.abv}</span></div>
+              <div class="stat-item">IBU<span class="stat-val">${t.ibu}</span></div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderStatic() {
+      document.getElementById('bar-name').textContent = config.barName;
+      document.getElementById('sizes').textContent = (config.sizes || []).join(" • ");
+      document.getElementById('specials').textContent = config.specials || "";
+    }
+
+    async function loadData() {
+      try {
+        const res = await fetch('./config.json', { cache: 'no-store' });
+        if(res.ok) {
+           const newData = await res.json();
+           config = { ...config, ...newData };
+        }
+      } catch(e) {}
+      renderStatic();
+      renderTaps();
+    }
+
+    async function init() {
+      await loadData();
+      setInterval(loadData, (config.refreshInterval || 300) * 1000);
+    }
+
+    window.addEventListener('DOMContentLoaded', init);
+  </script>
+</body>
+</html>

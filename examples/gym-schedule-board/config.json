@@ -1,0 +1,34 @@
+{
+  "title": "Pulse Fitness | Daily Schedule",
+  "gymName": "PULSE PERFORMANCE",
+  "theme": {
+    "background": "#000000",
+    "surface": "rgba(28, 28, 30, 0.7)",
+    "primary": "#007AFF",
+    "secondary": "#ffffff",
+    "accent": "#5856D6",
+    "textMain": "#ffffff",
+    "textMuted": "#8e8e93"
+  },
+  "refreshInterval": 30,
+  "dataUrl": "",
+  "schedule": [
+    { "time": "16:45", "duration": "45m", "class": "Advanced HIIT Burn", "trainer": "Marc Ross", "room": "Performance Zone", "status": "now" },
+    { "time": "17:30", "duration": "60m", "class": "Zen Flow Yoga", "trainer": "Elena V.", "room": "Mind & Body Studio", "status": "next" },
+    { "time": "17:45", "duration": "45m", "class": "Power Cycling", "trainer": "Chris Holt", "room": "The Arena", "status": "upcoming" },
+    { "time": "18:30", "duration": "60m", "class": "Elite Strength Group", "trainer": "Sarah J.", "room": "Weights Room", "status": "upcoming" },
+    { "time": "19:00", "duration": "30m", "class": "Core Blast 360", "trainer": "Marc Ross", "room": "Studio B", "status": "upcoming" },
+    { "time": "19:45", "duration": "75m", "class": "Evening Boxing Club", "trainer": "Mike T.", "room": "Combat Zone", "status": "upcoming" }
+  ],
+  "motivationalQuote": "Your only limit is your mind. Push past the comfort zone to find the real athlete within.",
+  "announcements": [
+    { "text": "New state-of-the-art StairMasters installed in the Cardio Deck." },
+    { "text": "Post-workout Protein Shakes: 20% off all Vegan flavors this week!" },
+    { "text": "Reminder: The Spa & Sauna area closes at 10:00 PM for deep cleaning." },
+    { "text": "Join our upcoming 30-Day Summer Shred Challenge! Sign up at reception." }
+  ],
+  "gymOccupancy": {
+    "percentage": 68,
+    "label": "Moderate Traffic (Comfortable Training)"
+  }
+}

@@ -1,0 +1,65 @@
+{
+  "title": "Neon Burger Menu",
+  "restaurantName": "NEON BURGER",
+  "locale": "en-US",
+  "currency": "$",
+  "fontUrl": "./assets/material-symbols-w300.woff2",
+  "theme": {
+    "backgroundColor": "#0d0e12",
+    "surfaceColor": "#15171d",
+    "accentColor": "#ff6b00",
+    "accentSecondary": "#ffd000",
+    "textColor": "#ffffff",
+    "textDim": "rgba(255, 255, 255, 0.6)"
+  },
+  "dataUrl": "",
+  "refreshInterval": 60,
+  "promotionRotationInterval": 8,
+  "promotions": [
+    {
+      "id": "promo-1",
+      "tagbox": "Meal Deal",
+      "title": "Double Stack\nCombo",
+      "description": "Our signature double cheeseburger + crispy fries + drink of choice.",
+      "price": 14.99,
+      "image": "./assets/burger_promo.png"
+    }
+  ],
+  "menu": [
+    {
+      "categoryName": "Burgers",
+      "icon": "lunch_dining",
+      "items": [
+        { "name": "Classic Cheeseburger", "details": "Beef patty, cheddar, lettuce, tomato", "price": 8.99 },
+        { "name": "Double Stack", "details": "Two patties, double cheese, house sauce", "price": 11.49, "highlight": true },
+        { "name": "Spicy Inferno", "details": "Jalapeños, pepper jack, spicy mayo", "price": 10.99 },
+        { "name": "Crispy Chicken", "details": "Fried chicken breast, pickles, slaw", "price": 9.49 },
+        { "name": "Plant-Based Patty", "details": "Vegan patty, clean ingredients", "price": 10.49, "tags": ["VG"] }
+      ]
+    },
+    {
+      "categoryName": "Sides & Share",
+      "icon": "grocery",
+      "items": [
+        { "name": "Crispy Fries", "details": "Small / Large", "price": 3.49 },
+        { "name": "Loaded Cheese Fries", "details": "Cheese sauce, bacon bits, scallions", "price": 5.99 },
+        { "name": "Onion Rings", "details": "Beer-battered with ranch dip", "price": 4.99 },
+        { "name": "Chicken Tenders", "details": "4 pieces with choice of sauce", "price": 6.49 }
+      ]
+    },
+    {
+      "categoryName": "Drinks & Shakes",
+      "icon": "local_cafe",
+      "items": [
+        { "name": "Fountain Drink", "details": "Unlimited Refills", "price": 2.49 },
+        { "name": "Craft Sodas", "details": "Bottle", "price": 3.49 },
+        { "name": "Vanilla Bean Shake", "details": "Hand-spun", "price": 5.49 },
+        { "name": "Double Choc Shake", "details": "Rich chocolate fudge", "price": 5.49 }
+      ]
+    }
+  ],
+  "footer": {
+    "hours": "Open Daily 10:30 AM - Midnight",
+    "website": "neonburger.com"
+  }
+}

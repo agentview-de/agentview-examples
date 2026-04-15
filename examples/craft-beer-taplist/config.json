@@ -1,0 +1,31 @@
+{
+  "title": "Brewery Pro | Live Taplist",
+  "barName": "THE HOPPING PENGUIN",
+  "theme": {
+    "background": "#1C1C1E",
+    "surface": "rgba(28, 28, 30, 0.85)",
+    "primary": "#FF9F0A",
+    "secondary": "#FFFFFF",
+    "accent": "#5856D6",
+    "textMain": "#FFFFFF",
+    "textMuted": "#AEAEB2"
+  },
+  "refreshInterval": 300,
+  "dataUrl": "",
+  "taps": [
+    { "number": 1, "name": "Nebula Haze", "brewery": "Cosmic Brewing", "style": "Hazy IPA", "abv": "6.8%", "ibu": "45", "color": "#FFCC00" },
+    { "number": 2, "name": "Midnight Oil", "brewery": "Black Forge", "style": "Imperial Stout", "abv": "10.2%", "ibu": "60", "color": "#332c25" },
+    { "number": 3, "name": "Crispy Boi", "brewery": "Local Pils Co.", "style": "Pilsner", "abv": "4.8%", "ibu": "25", "color": "#FFEA00" },
+    { "number": 4, "name": "Ruby Red", "brewery": "Orchard Bros", "style": "Sour Ale - Fruited", "abv": "5.5%", "ibu": "10", "color": "#FF3B30" },
+    { "number": 5, "name": "Hop Forward", "brewery": "West Coast Cats", "style": "West Coast IPA", "abv": "7.2%", "ibu": "75", "color": "#FF9500" },
+    { "number": 6, "name": "Nitro Velvet", "brewery": "Creamery Ales", "style": "Nitro Irish Stout", "abv": "4.2%", "ibu": "30", "color": "#4a3c31" },
+    { "number": 7, "name": "Amber Waves", "brewery": "Harvest Brewing", "style": "Amber Ale", "abv": "5.4%", "ibu": "35", "color": "#D35400" },
+    { "number": 8, "name": "Tropical Fog", "brewery": "Island Time", "style": "NEIPA", "abv": "6.5%", "ibu": "40", "color": "#FFD60A" },
+    { "number": 9, "name": "Citra Sunshine", "brewery": "Bright Side Brewery", "style": "Pale Ale", "abv": "5.2%", "ibu": "38", "color": "#FFD000" },
+    { "number": 10, "name": "Dark Forest", "brewery": "Pine Ridge Brewing", "style": "Black IPA", "abv": "7.5%", "ibu": "65", "color": "#2c1e14" },
+    { "number": 11, "name": "Peach Fuzz", "brewery": "Fruit Stand Ales", "style": "Fruited Wheat", "abv": "4.5%", "ibu": "15", "color": "#FFB347" },
+    { "number": 12, "name": "Iron Forge", "brewery": "Steel Works", "style": "Porter", "abv": "6.2%", "ibu": "42", "color": "#3d2b1f" }
+  ],
+  "sizes": ["1/2 Pint", "Pint", "Stein", "Growler"],
+  "specials": "HAPPY HOUR until 18:00: All Stein beers are -30%! • Try our new Beer Flight: 4 x 0.1l for $12"
+}

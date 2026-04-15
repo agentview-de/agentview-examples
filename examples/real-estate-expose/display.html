@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Real Estate Exposé</title>
+  <style>
+    @font-face {
+      font-family: "Material Symbols Outlined";
+      font-style: normal;
+      font-weight: 300;
+      src: url("./assets/material-symbols-w300.woff2") format("woff2");
+    }
+
+    :root {
+      --bg: #ffffff;
+      --surface: #f8f9fa;
+      --primary: #bca37f;
+      --secondary: #2c3e50;
+      --accent: #e67e22;
+      --text-main: #333333;
+      --text-muted: #7f8c8d;
+
+      --font-heading: "Playfair Display", Georgia, serif;
+      --font-body: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text-main);
+      font-family: var(--font-body);
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+    }
+
+    .material-symbols-outlined {
+      display: inline-flex; align-items: center; justify-content: center;
+      font-family: "Material Symbols Outlined"; font-size: 24px; line-height: 1;
+    }
+
+    /* Slides Container */
+    #slider-container {
+      position: relative;
+      width: 100%;
+      height: 100%;
+    }
+
+    .slide {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      opacity: 0;
+      transition: opacity 1.2s ease-in-out;
+      z-index: 1;
+    }
+    .slide.active { opacity: 1; z-index: 2; }
+
+    /* Left Image Area */
+    .image-pane {
+      width: 60%;
+      height: 100%;
+      position: relative;
+      overflow: hidden;
+      background: #000;
+    }
+
+    .property-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      opacity: 0.9;
+    }
+
+    /* Ken Burns Animation */
+    @keyframes kenburns {
+      0% { transform: scale(1); }
+      100% { transform: scale(1.08) translate(-1%, -1%); }
+    }
+    .slide.active .property-img {
+      animation: kenburns 15s linear forwards;
+    }
+
+    /* Gradient overlay to blend image into text pane */
+    .image-pane::after {
+      content: "";
+      position: absolute;
+      top: 0; right: 0; bottom: 0;
+      width: 150px;
+      background: linear-gradient(to right, transparent, var(--bg));
+    }
+
+    /* Right Info Area */
+    .info-pane {
+      width: 40%;
+      height: 100%;
+      background: var(--bg);
+      padding: 50px;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      z-index: 5;
+    }
+
+    /* Agency Branding */
+    .agency-branding {
+      text-align: right;
+      font-family: var(--font-heading);
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--primary);
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin-bottom: 40px;
+    }
+
+    /* Property Headers */
+    .location {
+      font-size: 16px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 10px;
+    }
+    .location .material-symbols-outlined { font-size: 20px; color: var(--accent); }
+
+    .title {
+      font-family: var(--font-heading);
+      font-size: 46px;
+      font-weight: 700;
+      color: var(--secondary);
+      line-height: 1.1;
+      margin-bottom: 20px;
+    }
+
+    .price {
+      font-size: 42px;
+      font-weight: 300;
+      color: var(--primary);
+      margin-bottom: 40px;
+    }
+
+    /* Key Stats Grid */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px 30px;
+      margin-bottom: 40px;
+      padding-bottom: 40px;
+      border-bottom: 1px solid var(--surface);
+    }
+    
+    .stat-box { display: flex; flex-direction: column; }
+    .stat-label { font-size: 14px; text-transform: uppercase; color: var(--text-muted); letter-spacing: 1px; margin-bottom: 4px; }
+    .stat-value { font-size: 24px; font-weight: 600; color: var(--secondary); }
+
+    /* Features */
+    .features {
+      display: flex;
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+    .feature-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: var(--surface);
+      color: var(--secondary);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 24px;
+    }
+
+    /* Description */
+    .description {
+      font-size: 17px;
+      line-height: 1.6;
+      color: var(--text-muted);
+      flex: 1;
+    }
+
+    /* Footer */
+    .footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      margin-top: auto;
+      padding-top: 20px;
+      border-top: 1px solid var(--surface);
+    }
+
+    .contact-info { display: flex; flex-direction: column; gap: 8px; font-weight: 500; color: var(--secondary); }
+    .qr-placeholder { width: 80px; height: 80px; background: #eee; border: 4px solid var(--surface); }
+
+  </style>
+</head>
+<body>
+
+  <div id="slider-container"></div>
+
+  <script>
+    const defaultConfig = {
+      "title": "Real Estate Exposé",
+      "agencyName": "Prime Properties",
+      "theme": {
+        "background": "#ffffff",
+        "surface": "#f8f9fa",
+        "primary": "#bca37f",
+        "secondary": "#2c3e50",
+        "accent": "#e67e22",
+        "textMain": "#333333",
+        "textMuted": "#7f8c8d"
+      },
+      "refreshInterval": 300,
+      "slideInterval": 10,
+      "dataUrl": "",
+      "featuresIconMap": {
+        "pool": "pool",
+        "garage": "garage",
+        "garden": "yard",
+        "balcony": "balcony",
+        "fireplace": "fireplace"
+      },
+      "properties": [
+        {
+          "id": "prop-001",
+          "title": "Modern Luxury Villa with Infinity Pool",
+          "location": "Beverly Hills, CA",
+          "price": "$5,200,000",
+          "stats": [
+            { "label": "Rooms", "value": "6" },
+            { "label": "Living Area", "value": "450 m²" },
+            { "label": "Lot Size", "value": "1200 m²" },
+            { "label": "Energy Class", "value": "A+" }
+          ],
+          "features": ["pool", "garage", "garden"],
+          "description": "An architectural masterpiece offering panoramic sunset views, state-of-the-art smart home integration, and unparalleled privacy.",
+          "image": "./assets/house.png"
+        }
+      ],
+      "contact": {
+        "phone": "+1 (555) 123-4567",
+        "website": "www.prime-properties.com"
+      }
+    };
+
+    let config = defaultConfig;
+    let currentSlide = 0;
+    let slideTimer = null;
+
+    function applyTheme() {
+      const root = document.documentElement;
+      if (config.theme) {
+        if(config.theme.background) root.style.setProperty('--bg', config.theme.background);
+        if(config.theme.surface) root.style.setProperty('--surface', config.theme.surface);
+        if(config.theme.primary) root.style.setProperty('--primary', config.theme.primary);
+        if(config.theme.secondary) root.style.setProperty('--secondary', config.theme.secondary);
+        if(config.theme.accent) root.style.setProperty('--accent', config.theme.accent);
+        if(config.theme.textMain) root.style.setProperty('--text-main', config.theme.textMain);
+        if(config.theme.textMuted) root.style.setProperty('--text-muted', config.theme.textMuted);
+      }
+    }
+
+    function rotateSlides() {
+      const slides = document.querySelectorAll('.slide');
+      if(slides.length <= 1) return;
+      slides.forEach(s => s.classList.remove('active'));
+      currentSlide = (currentSlide + 1) % slides.length;
+      slides[currentSlide].classList.add('active');
+    }
+
+    function renderProperties() {
+      const container = document.getElementById('slider-container');
+      const props = config.properties || [];
+      const iconMap = config.featuresIconMap || {};
+      const contact = config.contact || {};
+
+      if(props.length === 0) {
+        container.innerHTML = `<div class="slide active"><div class="info-pane">No properties found.</div></div>`;
+        return;
+      }
+
+      container.innerHTML = props.map((p, index) => {
+        const cls = index === 0 ? 'slide active' : 'slide';
+        const imgUrl = p.image || 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><rect width="100" height="100" fill="%23f8f9fa"/></svg>';
+        
+        const statsHtml = (p.stats || []).map(s => `
+          <div class="stat-box">
+            <div class="stat-label">${s.label}</div>
+            <div class="stat-value">${s.value}</div>
+          </div>
+        `).join('');
+
+        const featuresHtml = (p.features || []).map(f => {
+          const icon = iconMap[f.toLowerCase()] || 'check_circle';
+          return `<div class="feature-icon" title="${f}"><span class="material-symbols-outlined">${icon}</span></div>`;
+        }).join('');
+
+        return `
+          <div class="${cls}">
+            <div class="image-pane">
+              <img src="${imgUrl}" class="property-img" alt="${p.title}">
+            </div>
+            <div class="info-pane">
+              <div class="agency-branding">${config.agencyName || ''}</div>
+              
+              <div class="location"><span class="material-symbols-outlined">location_on</span> ${p.location || ''}</div>
+              <div class="title">${p.title || ''}</div>
+              <div class="price">${p.price || ''}</div>
+              
+              <div class="stats-grid">${statsHtml}</div>
+              
+              ${featuresHtml ? `<div class="features">${featuresHtml}</div>` : ''}
+              
+              <div class="description">${p.description || ''}</div>
+              
+              <div class="footer">
+                <div class="contact-info">
+                  <div>${contact.phone || ''}</div>
+                  <div>${contact.website || ''}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      if(slideTimer) clearInterval(slideTimer);
+      if(props.length > 1) {
+        slideTimer = setInterval(rotateSlides, (config.slideInterval || 10) * 1000);
+      }
+    }
+
+    async function loadConfig() {
+      try {
+        const res = await fetch('./config.json', { cache: "no-store" });
+        if(res.ok) {
+          const json = await res.json();
+          config = { ...config, ...json };
+        }
+      } catch (e) {
+        console.warn("Slight fetch warn, fallback works.", e);
+      }
+    }
+
+    async function init() {
+      await loadConfig();
+      document.title = config.title || "Real Estate";
+      applyTheme();
+      renderProperties();
+
+      setInterval(async () => {
+        await loadConfig();
+        // optionally load live data here
+        applyTheme();
+        renderProperties();
+      }, (config.refreshInterval || 300) * 1000);
+    }
+
+    window.addEventListener('DOMContentLoaded', init);
+  </script>
+</body>
+</html>

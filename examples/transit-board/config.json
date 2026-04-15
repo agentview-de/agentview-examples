@@ -1,0 +1,27 @@
+{
+  "title": "Midnight Monitor | Global Hub",
+  "stationName": "GRANDS CENTRAL TERMINAL",
+  "theme": {
+    "background": "#010409",
+    "surface": "rgba(28, 28, 30, 0.6)",
+    "primary": "#FFD60A",
+    "secondary": "#FFFFFF",
+    "accent": "#FF453A",
+    "textMain": "#FFFFFF",
+    "textMuted": "#8E8E93"
+  },
+  "refreshInterval": 30,
+  "dataUrl": "",
+  "departures": [
+    { "line": "ICE 4", "destination": "Berlin Hbf", "time": "14:15", "track": "Track 4", "status": "On time", "color": "#005a9c", "isAlert": false },
+    { "line": "S1", "destination": "Flughafen / Airport", "time": "In 3 min", "track": "Track 2", "status": "Exp. 14:18", "color": "#1ea240", "isAlert": false },
+    { "line": "RE 7", "destination": "Hamburg Hbf", "time": "14:28", "track": "Track 8", "status": "+15 min", "color": "#e60000", "isAlert": true },
+    { "line": "U3", "destination": "City Center", "time": "In 5 min", "track": "Plat. A", "status": "On time", "color": "#ffd700", "isAlert": false },
+    { "line": "ICE 1", "destination": "München Hbf", "time": "14:40", "track": "Track 5", "status": "On time", "color": "#005a9c", "isAlert": false },
+    { "line": "S4", "destination": "West End", "time": "In 8 min", "track": "Track 1", "status": "Exp. 14:48", "color": "#8b008b", "isAlert": false }
+  ],
+  "alerts": [
+    "High volume of passengers expected tonight. Please allow extra time.",
+    "Construction work on Line U3 between North and Central. Expect minor delays."
+  ]
+}

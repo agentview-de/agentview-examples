@@ -1,0 +1,40 @@
+{
+  "title": "Manufacturing Shift Board | Daily KPIs",
+  "plantName": "PLANT ALPHA - UNIT 4",
+  "theme": {
+    "background": "#000000",
+    "surface": "rgba(28, 28, 30, 0.7)",
+    "primary": "#007AFF",
+    "secondary": "#ffffff",
+    "success": "#34C759",
+    "warning": "#FF9500",
+    "danger": "#FF3B30",
+    "textMain": "#ffffff",
+    "textMuted": "#8e8e93"
+  },
+  "refreshInterval": 30,
+  "dataUrl": "",
+  "safety": {
+    "daysWithoutAccident": 342,
+    "lastIncident": "Dec 12, 2024",
+    "status": "success",
+    "message": "Continue prioritizing worker safety above all else."
+  },
+  "production": {
+    "target": 5000,
+    "current": 4210,
+    "dailyGoalProgress": 84.2,
+    "status": "warning",
+    "unitsPerHour": 480
+  },
+  "shift": {
+    "currentShift": "First Shift (Day)",
+    "manager": "Dr. Sarah Miller",
+    "qualityLead": "John Doe",
+    "maintenanceStatus": "Optimal Performance"
+  },
+  "alerts": [
+    { "level": "info", "message": "System check on Line 4 completed." },
+    { "level": "warning", "message": "Low material levels in Bin A-12." }
+  ]
+}

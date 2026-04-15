@@ -4,7 +4,7 @@ A polished starter display for AgentView. It uses one fullscreen HTML file with 
 
 ## Preview
 
-Open `display.html` in your browser.
+Open [`display.html`](display.html) in your browser.
 
 ![Hello World example preview](screenshot.png)
 

@@ -6,7 +6,7 @@ A cleanly designed corporate dashboard template for internal communication. It f
 
 ## Preview
 
-Open `display.html` in your browser. If your browser blocks local JSON files from `file://`, serve this folder with a local static server.
+Open [`display.html`](display.html) in your browser. If your browser blocks local JSON files from `file://`, serve this folder with a local static server.
 
 ## Send to agentView
 

@@ -6,7 +6,7 @@ A premium, elegant display designed specifically for real estate firm window fro
 
 ## Preview
 
-Open `display.html` in your browser. If your browser blocks local JSON files from `file://`, serve this folder with a local static server.
+Open [`display.html`](display.html) in your browser. If your browser blocks local JSON files from `file://`, serve this folder with a local static server.
 
 ## Send to agentView
 

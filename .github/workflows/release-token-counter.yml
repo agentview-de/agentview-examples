@@ -68,7 +68,7 @@ jobs:
           Write-Host "SHA-256: $h"
 
       - name: Create GitHub Release + upload assets
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           name: "Token Counter v${{ steps.ver.outputs.version }}"
           # Body intentionally minimal — release notes are maintained

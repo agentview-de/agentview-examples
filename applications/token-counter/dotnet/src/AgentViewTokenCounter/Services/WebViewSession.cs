@@ -90,6 +90,20 @@ public sealed class WebViewSession : IDisposable
     // fetch times out with "Failed to fetch".
     private readonly SemaphoreSlim _gate = new(1, 1);
 
+    // Bumped on every real top-level navigation (see OnNavigationStarting).
+    // FetchUnlockedAsync snapshots it right after injecting the fetch:
+    // if it changes while we are still polling, the document that holds
+    // our `window.__avFetch__` promise has been replaced (classic case:
+    // the user completes an interactive login and the page redirects
+    // login.html → dashboard.html). Without this the poll loop would
+    // spin the full 20 s against a dead global before timing out — a
+    // visible stall during sign-in. Comparing the WebView's Source
+    // string instead would be fragile: SPA hash changes
+    // (dashboard.html → dashboard.html#/) are NOT document loads and
+    // must NOT count, whereas NavigationStarting fires only for real
+    // document-replacing navigations — exactly the signal we want.
+    private volatile int _navGeneration;
+
     public WebViewSession(DiagnosticsLog log)
     {
         _log = log;
@@ -213,6 +227,13 @@ public sealed class WebViewSession : IDisposable
         {
             return;
         }
+
+        // A real document-replacing navigation is starting. Bump the
+        // generation BEFORE the fence's mode branches return, so an
+        // in-flight FetchUnlockedAsync abandons its now-dead promise
+        // fast — this must count interactive-login redirects too, which
+        // are exactly the ones that orphaned the fetch.
+        unchecked { _navGeneration++; }
 
         if (InteractiveLoginActive)
         {
@@ -388,6 +409,11 @@ public sealed class WebViewSession : IDisposable
 ";
         await _webView.CoreWebView2.ExecuteScriptAsync(kickoff).ConfigureAwait(true);
 
+        // Snapshot the navigation generation now that the fetch promise
+        // lives in *this* document. If it changes mid-poll the document
+        // (and our window.__avFetch__) is gone — see field comment.
+        var genAtKickoff = _navGeneration;
+
         // Poll. The Promise-await behaviour of ExecuteScriptWithResultAsync
         // depends on the runtime version; the polling pattern works on
         // every WebView2 version we ship for.
@@ -397,7 +423,21 @@ public sealed class WebViewSession : IDisposable
             var probe = await _webView.CoreWebView2
                 .ExecuteScriptAsync("window.__avFetch__")
                 .ConfigureAwait(true);
-            if (probe == "null") continue;
+
+            if (probe == "null")
+            {
+                // No result yet. If the document was replaced under us
+                // the promise can never resolve here — fail fast so the
+                // caller (e.g. the IsLoggedIn probe) retries on the new
+                // page within its normal cadence instead of stalling the
+                // full 20 s.
+                if (_navGeneration != genAtKickoff)
+                {
+                    _log.Info("  → fetch abandoned: document navigated away mid-request");
+                    return new HttpFetchResult(false, -1, "navigated away during fetch");
+                }
+                continue;
+            }
 
             string inner;
             try

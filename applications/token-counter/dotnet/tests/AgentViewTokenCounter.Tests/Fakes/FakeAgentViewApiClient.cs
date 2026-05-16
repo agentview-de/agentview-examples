@@ -25,6 +25,16 @@ internal sealed class FakeAgentViewApiClient : IAgentViewApiClient
     /// <summary>Throws this exception from every mutating call when set.</summary>
     public Exception? ThrowOnMutate { get; set; }
 
+    /// <summary>
+    /// Simulates a stale/revoked stored API key: while set, an
+    /// X-API-Key <c>PutDataSlotAsync</c> (i.e. <see cref="IsApiKeyMode"/>)
+    /// throws <see cref="AgentViewAuthException"/> — until a fresh key
+    /// is minted via <see cref="CreateScopedApiKeyAsync"/>, after which
+    /// it succeeds. Drives the publish self-heal test.
+    /// </summary>
+    public bool StaleStoredKeyUntilRemint { get; set; }
+    private bool _remintedAfterStale;
+
     public List<AgentViewDisplay> Displays { get; set; } =
         new List<AgentViewDisplay>
         {
@@ -101,6 +111,10 @@ internal sealed class FakeAgentViewApiClient : IAgentViewApiClient
         string slug, string jsonBody, string? label = null, string? groupId = null)
     {
         if (ThrowOnMutate is not null) throw ThrowOnMutate;
+        // Stale-stored-key simulation: the X-API-Key verification write
+        // fails auth until the coordinator self-heals by minting fresh.
+        if (StaleStoredKeyUntilRemint && IsApiKeyMode && !_remintedAfterStale)
+            throw new AgentViewAuthException("401 Unauthorized (stale stored key)");
         PutSlugCalls.Add(slug);
         return Task.FromResult(SlotToReturn);
     }
@@ -116,6 +130,7 @@ internal sealed class FakeAgentViewApiClient : IAgentViewApiClient
     {
         if (ThrowOnMutate is not null) throw ThrowOnMutate;
         CreateKeyCalls.Add(name);
+        _remintedAfterStale = true;   // fresh key heals the stale-key sim
         return Task.FromResult(new CreateApiKeyResponse
         {
             KeyId = "kid-1",

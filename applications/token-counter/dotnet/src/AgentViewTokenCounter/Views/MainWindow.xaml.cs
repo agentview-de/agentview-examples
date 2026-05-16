@@ -47,6 +47,23 @@ public partial class MainWindow : Window
         // staying on a stale Setup form.
         Setup.InstallCompleted += (_, _) => Tabs.SelectedItem = OverviewTabItem;
 
+        // Settings holds a snapshot of the shared config in its input
+        // fields. A Re-publish (new API key), sign-out or reset done on
+        // another tab mutates that shared config without Settings
+        // knowing. Re-read it whenever the user lands on Settings so
+        // the form never shows a stale key. The TabControl's
+        // SelectionChanged also bubbles up from inner ComboBoxes — the
+        // e.Source guard ignores those so we only react to real tab
+        // switches.
+        Tabs.SelectionChanged += (_, e) =>
+        {
+            if (e.Source is not TabControl) return;
+            if (ReferenceEquals(Tabs.SelectedItem, SettingsTabItem))
+            {
+                Settings.ReloadFromConfig();
+            }
+        };
+
         // Keep the title-band email in sync with whatever the Setup
         // tab discovers via /auth/me.
         Setup.UserEmailUpdated += (_, email) => SetUserEmail(email);

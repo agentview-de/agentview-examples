@@ -26,6 +26,7 @@ public partial class SettingsTab : UserControl
     private readonly ConfigStore _store;
     private readonly AppConfig   _config;
     private bool                 _suppressDirty;
+    private bool                 _dirty;
 
     /// <summary>Raised when the user clicks Save and the config has been written.</summary>
     public event EventHandler? Saved;
@@ -69,9 +70,24 @@ public partial class SettingsTab : UserControl
 
     private void SetDirty(bool dirty)
     {
+        _dirty = dirty;
         UnsavedHint.Visibility = dirty ? Visibility.Visible : Visibility.Collapsed;
         SaveButton.IsEnabled = dirty;
         RevertButton.IsEnabled = dirty;
+    }
+
+    /// <summary>
+    /// Re-reads the shared <see cref="AppConfig"/> into the form.
+    /// Called by the host when the Settings tab is shown so a key
+    /// minted by a Re-publish (or cleared by a sign-out / reset that
+    /// happened on another tab) is reflected here. Skipped while the
+    /// user has unsaved edits so in-progress changes are never
+    /// silently discarded.
+    /// </summary>
+    public void ReloadFromConfig()
+    {
+        if (_dirty) return;
+        Populate();
     }
 
     private void OnIntervalDecrement(object sender, RoutedEventArgs e)
@@ -121,7 +137,11 @@ public partial class SettingsTab : UserControl
             return;
         }
 
-        _config.AgentViewBaseUrl    = baseUrl;
+        // Strip the trailing slash here too, not just in ConfigStore.
+        // The shared AppConfig is no longer re-read from disk after a
+        // save, so this in-memory value must already be canonical or
+        // URL building would double up the slash.
+        _config.AgentViewBaseUrl    = baseUrl.TrimEnd('/');
         _config.AgentViewSlotSlug   = string.IsNullOrWhiteSpace(SlugBox.Text)     ? "claude-usage"         : SlugBox.Text.Trim();
         _config.AgentViewGroupId    = string.IsNullOrWhiteSpace(GroupIdBox.Text)  ? null                   : GroupIdBox.Text.Trim();
         _config.AgentViewApiKey     = string.IsNullOrWhiteSpace(ApiKeyBox.Password) ? null                 : ApiKeyBox.Password.Trim();

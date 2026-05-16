@@ -44,6 +44,7 @@ public sealed class TrayIconHost : IDisposable
 
     public TrayIconHost(
         ConfigStore configStore,
+        AppConfig config,
         PingService pingService,
         WebViewSession session,
         SetupCoordinator coordinator,
@@ -56,7 +57,13 @@ public sealed class TrayIconHost : IDisposable
         _coordinator = coordinator;
         _log         = log;
         _app         = app;
-        _config      = configStore.Load();
+
+        // The single, app-wide AppConfig instance, created once at the
+        // composition root and shared with the SetupCoordinator and
+        // every tab. Never replace this reference (see the Saved /
+        // InstallCompleted handlers) — mutate it in place so all
+        // holders observe the same state.
+        _config      = config;
 
         _menu = BuildMenu();
         _icon = new TaskbarIcon
@@ -149,16 +156,13 @@ public sealed class TrayIconHost : IDisposable
             {
                 _mainWindow = null;
             };
-            _mainWindow.Settings.Saved += (_, _) =>
-            {
-                _config = _configStore.Load();
-                _ = SyncNowAsync();
-            };
-            _mainWindow.Setup.InstallCompleted += (_, _) =>
-            {
-                _config = _configStore.Load();
-                _ = SyncNowAsync();
-            };
+            // SettingsTab.OnSave/OnReset and SetupCoordinator.PublishAsync
+            // mutate the shared _config in place before raising these
+            // events, so it is already current — re-reading disk here
+            // would only fork the graph again (the bug this design
+            // avoids). Just kick a fresh sync with the new settings.
+            _mainWindow.Settings.Saved += (_, _) => _ = SyncNowAsync();
+            _mainWindow.Setup.InstallCompleted += (_, _) => _ = SyncNowAsync();
             _mainWindow.Overview.SyncRequested        += async (_, _) => await SyncNowAsync();
             _mainWindow.Overview.PauseToggleRequested += (_, _) => TogglePaused();
         }

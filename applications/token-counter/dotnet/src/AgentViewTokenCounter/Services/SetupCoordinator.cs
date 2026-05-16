@@ -393,22 +393,110 @@ public sealed class SetupCoordinator
                 html:        html,
                 description: $"Claude plan usage (slot {slot.Slug})").ConfigureAwait(true);
 
-            // Step 5 — key strategy.
-            // When the user already supplied a broad key via the Full-Setup
-            // path, reuse it — minting a new key would be a surprising
-            // side-effect and likely needs admin scope the pasted key lacks.
+            // Step 5 — key strategy: reuse, but VERIFY, and self-heal.
+            //
+            // Reuse a stored key when present (first the Full-Setup
+            // pasted key, otherwise a previously-minted scoped key):
+            // re-pushing HTML/slot needs no new credential, the slug is
+            // unchanged so the scoped key still fits, and minting on
+            // every Re-publish would orphan keys and hit agentView's
+            // 10-keys-per-user cap. BUT a stored key can be stale
+            // (revoked in the dashboard, expired, rotated) — then the
+            // background loop 401s forever and a naive "reuse" would
+            // make Re-publish unable to fix it. So we do not trust the
+            // key on faith: we verify it on the EXACT path the ping
+            // loop uses (an X-API-Key PUT to the slot) and self-heal a
+            // dead key by minting a fresh one. "Published ✓" therefore
+            // means the bridge credential is proven to work, not merely
+            // present.
+            var keyName = $"Token Counter ({displayName})";
+
             string workingKey;
-            if (ApiKeyFullSetupActive && !string.IsNullOrEmpty(_config.AgentViewApiKey))
+            var mintedFresh = false;
+            if (!string.IsNullOrEmpty(_config.AgentViewApiKey))
             {
                 workingKey = _config.AgentViewApiKey!;
             }
             else
             {
                 progress?.Invoke("Minting API key…");
-                var keyResp = await _agentView.CreateScopedApiKeyAsync(
-                    name:     $"Token Counter ({displayName})",
-                    slotSlug: slot.Slug).ConfigureAwait(true);
-                workingKey = keyResp.Key;
+                workingKey = (await _agentView.CreateScopedApiKeyAsync(
+                    name: keyName, slotSlug: slot.Slug).ConfigureAwait(true)).Key;
+                mintedFresh = true;
+            }
+
+            // Local helper: exercise the real background write path
+            // (X-API-Key PUT to the slot). Idempotent — it just re-sets
+            // the slot content we already computed. label:null so a
+            // user-renamed slot label in the portal is preserved.
+            async Task<bool> KeyCanWriteAsync(string key)
+            {
+                _agentView.UseApiKey(key);
+                try
+                {
+                    await _agentView.PutDataSlotAsync(
+                        slug: slot.Slug, jsonBody: slotJson,
+                        label: null, groupId: slot.GroupId).ConfigureAwait(true);
+                    return true;
+                }
+                catch (AgentViewAuthException)
+                {
+                    return false;   // 401/403: this key cannot write the slot
+                }
+            }
+
+            progress?.Invoke("Verifying the bridge credential…");
+            var keyWorks = await KeyCanWriteAsync(workingKey).ConfigureAwait(true);
+
+            if (!keyWorks && !mintedFresh)
+            {
+                if (ApiKeyFullSetupActive)
+                {
+                    // The user pasted their own key. We must not mint on
+                    // their behalf (likely lacks admin scope) — surface
+                    // exactly what is wrong and how to fix it.
+                    _agentView.UseCookieSession();
+                    return new PublishResult(
+                        Success: false, DisplayId: null, DisplayName: null,
+                        SlotSlug: null, ApiKey: null, PublishedAt: null,
+                        ErrorMessage:
+                            $"The API key signed in but cannot write slot \"{slot.Slug}\". " +
+                            "Grant it the slot.write capability for that slug " +
+                            "(or use the Slot-only API-key option).",
+                        IsAuthError: true);
+                }
+
+                // Stored scoped key is dead → self-heal by minting fresh.
+                progress?.Invoke("Stored key was rejected — minting a fresh one…");
+                _agentView.UseCookieSession();
+                workingKey = (await _agentView.CreateScopedApiKeyAsync(
+                    name: keyName, slotSlug: slot.Slug).ConfigureAwait(true)).Key;
+                mintedFresh = true;
+                keyWorks = await KeyCanWriteAsync(workingKey).ConfigureAwait(true);
+            }
+
+            if (!keyWorks)
+            {
+                _agentView.UseCookieSession();
+                return new PublishResult(
+                    Success: false, DisplayId: null, DisplayName: null,
+                    SlotSlug: null, ApiKey: null, PublishedAt: null,
+                    ErrorMessage:
+                        $"A freshly minted API key still cannot write slot \"{slot.Slug}\". " +
+                        "This is an agentView-side issue — check the dashboard.",
+                    IsAuthError: true);
+            }
+
+            // Restore the wizard's transport for any later step (pairing
+            // uses cookie auth in the normal path; Full-Setup keeps the
+            // user's key).
+            if (ApiKeyFullSetupActive)
+            {
+                _agentView.UseApiKey(workingKey);
+            }
+            else
+            {
+                _agentView.UseCookieSession();
             }
 
             // Step 6 — persist.

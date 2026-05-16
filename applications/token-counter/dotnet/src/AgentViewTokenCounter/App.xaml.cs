@@ -122,8 +122,15 @@ public partial class App : Application
         var pingService = new PingService(claude, agentViewClient, _diagnostics);
 
         // ── Tray host (owns the window and the timer) ──────────────
+        // Pass the SAME initialConfig instance the coordinator holds.
+        // One AppConfig graph for the whole app: Reset / Save / publish
+        // all mutate it in place, so every tab and the background loop
+        // see the change without anyone re-reading disk. Handing the
+        // tray host its own configStore.Load() here would fork the
+        // graph and the Setup tab would render a stale API key.
         _tray = new TrayIconHost(
-            configStore, pingService, _session, coordinator, _diagnostics, this);
+            configStore, initialConfig, pingService, _session,
+            coordinator, _diagnostics, this);
         _tray.Start();
     }
 

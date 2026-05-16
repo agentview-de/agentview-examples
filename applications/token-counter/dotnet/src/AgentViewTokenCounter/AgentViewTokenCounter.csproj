@@ -9,7 +9,7 @@
     <UseWPF>true</UseWPF>
     <RootNamespace>AgentView.TokenCounter</RootNamespace>
     <AssemblyName>AgentViewTokenCounter</AssemblyName>
-    <Version>1.0.0</Version>
+    <Version>1.0.1</Version>
     <Description>Example Windows tray app that bridges claude.ai plan usage to an agentView display via an embedded WebView2 session. WPF, single-file self-contained .exe. Part of github.com/agentview-de/agentview-examples.</Description>
     <Product>agentView Token Counter</Product>
     <ApplicationManifest>app.manifest</ApplicationManifest>

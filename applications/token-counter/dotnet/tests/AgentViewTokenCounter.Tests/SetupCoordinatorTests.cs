@@ -153,12 +153,49 @@ public sealed class SetupCoordinatorTests
 
         // No new display was created.
         Assert.Empty(f.AgentView.CreateDisplayCalls);
-        // Slot was PUT exactly once.
-        Assert.Single(f.AgentView.PutSlugCalls);
+        // Slot is PUT twice: once to provision it (cookie/owner auth),
+        // then once more on the X-API-Key path to PROVE the freshly
+        // minted bridge credential actually writes before we report
+        // "Published". That second write is the self-heal/verify gate.
+        Assert.Equal(2, f.AgentView.PutSlugCalls.Count);
         // HTML was sent to the correct display.
         Assert.Single(f.AgentView.SendHtmlCalls);
         Assert.Equal("disp-1", f.AgentView.SendHtmlCalls[0]);
-        // A key was minted (cookie flow has no pre-existing broad key).
+        // Exactly one key minted: the verification write succeeds, so
+        // no self-heal re-mint (cookie flow has no pre-existing key).
+        Assert.Single(f.AgentView.CreateKeyCalls);
+    }
+
+    // ── PublishAsync — stale stored key self-heals ───────────────────────
+
+    [Fact]
+    public async Task PublishAsync_StaleStoredKey_SelfHealsByMintingFresh()
+    {
+        // A previously-stored key that the server now rejects (revoked
+        // / rotated / expired). Re-publish must NOT just reuse it (the
+        // background loop would 401 forever) — it must detect the dead
+        // key on the real X-API-Key write path and mint a fresh one.
+        var cfg = new AppConfig
+        {
+            ClaudeOrgId       = "org-123",
+            AgentViewBaseUrl  = "https://agentview.de",
+            AgentViewSlotSlug = "claude-usage",
+            AgentViewApiKey   = "avk_stale_revoked",
+        };
+        var avFake = new FakeAgentViewApiClient { StaleStoredKeyUntilRemint = true };
+        using var f = Build(config: cfg, agentView: avFake);
+        var org     = new ClaudeOrganization { Uuid = "org-123", Name = "Acme" };
+        var display = new AgentViewDisplay { Id = "disp-1", Name = "Office TV" };
+
+        var result = await f.Coordinator.PublishAsync(org, display);
+
+        Assert.True(result.Success);
+        Assert.False(result.IsAuthError);
+        // The dead stored key was replaced by a freshly minted one…
+        Assert.Equal("avk_minted_key", result.ApiKey);
+        Assert.Equal("avk_minted_key", f.Config.AgentViewApiKey);
+        Assert.NotEqual("avk_stale_revoked", f.Config.AgentViewApiKey);
+        // …minted exactly once (the self-heal), not on every attempt.
         Assert.Single(f.AgentView.CreateKeyCalls);
     }
 

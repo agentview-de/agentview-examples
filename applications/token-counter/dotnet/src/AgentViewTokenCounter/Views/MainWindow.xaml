@@ -1,0 +1,78 @@
+<Window x:Class="AgentView.TokenCounter.Views.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Token Counter"
+        Width="900" Height="820"
+        MinWidth="780" MinHeight="640"
+        WindowStartupLocation="CenterScreen"
+        UseLayoutRounding="True"
+        Background="{StaticResource Brush.Background}"
+        FontFamily="{StaticResource Font.Sans}"
+        TextElement.Foreground="{StaticResource Brush.TextPrimary}"
+        TextOptions.TextFormattingMode="Ideal"
+        TextOptions.TextRenderingMode="ClearType">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- ── Title band ─────────────────────────────────────────
+             Left: app name.
+             Right: a global live-status pill that mirrors the tray
+             icon's state — so users can confirm "is the bridge
+             actually running?" without first clicking Overview.
+             Updated by the tray host through SetGlobalStatus(). -->
+        <Border Grid.Row="0" Padding="20,16,20,8">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Grid.Column="0"
+                           Style="{StaticResource Text.Title}"
+                           Text="Token Counter"
+                           VerticalAlignment="Center"/>
+
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Ellipse x:Name="GlobalStatusBullet"
+                             Style="{StaticResource StatusBullet.Pending}"
+                             Margin="0,0,6,0"/>
+                    <TextBlock x:Name="GlobalStatusText"
+                               VerticalAlignment="Center"
+                               FontSize="{StaticResource FontSize.Body}"
+                               Foreground="{StaticResource Brush.TextSecondary}"
+                               Text="Waiting for first sync…"/>
+                    <TextBlock x:Name="GlobalSeparator"
+                               VerticalAlignment="Center"
+                               Margin="6,0,6,0"
+                               Foreground="{StaticResource Brush.TextMuted}"
+                               FontSize="{StaticResource FontSize.Body}"
+                               Text="·"
+                               Visibility="Collapsed"/>
+                    <TextBlock x:Name="GlobalUserEmail"
+                               VerticalAlignment="Center"
+                               FontFamily="Consolas, Menlo, monospace"
+                               FontSize="{StaticResource FontSize.Body}"
+                               Foreground="{StaticResource Brush.TextSecondary}"
+                               Text=""
+                               Visibility="Collapsed"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- ── Tab bar + content ───────────────────────────────── -->
+        <TabControl Grid.Row="1" x:Name="Tabs">
+            <TabItem Header="Overview" x:Name="OverviewTabItem">
+                <ContentControl x:Name="OverviewHost"/>
+            </TabItem>
+            <TabItem Header="Setup" x:Name="SetupTabItem">
+                <ContentControl x:Name="SetupHost"/>
+            </TabItem>
+            <TabItem Header="Settings" x:Name="SettingsTabItem">
+                <ContentControl x:Name="SettingsHost"/>
+            </TabItem>
+        </TabControl>
+    </Grid>
+</Window>

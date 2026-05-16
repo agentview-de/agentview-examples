@@ -1,0 +1,55 @@
+# Continuous integration for the .NET example application.
+#
+# Best practice for a repo people copy: every change must be proven to
+# build AND pass its tests, with a visible green/red signal. The
+# `examples/` folder is pure single-file HTML (nothing to compile), so
+# this job is scoped to the one thing that has a build + a test suite —
+# applications/token-counter/dotnet — and only runs when that code
+# (or this workflow) actually changes.
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'applications/token-counter/dotnet/**'
+      - '.github/workflows/ci.yml'
+  pull_request:
+    paths:
+      - 'applications/token-counter/dotnet/**'
+      - '.github/workflows/ci.yml'
+
+# Cancel an in-flight run when a newer commit is pushed to the same ref.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read   # least privilege: CI only needs to read the code
+
+jobs:
+  build-test:
+    # net10.0-windows + WPF + DPAPI integration tests → Windows runner.
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 10 SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore
+        working-directory: applications/token-counter/dotnet
+        run: dotnet restore AgentViewTokenCounter.sln
+
+      - name: Build (Release, warnings are errors)
+        working-directory: applications/token-counter/dotnet
+        run: dotnet build AgentViewTokenCounter.sln -c Release --no-restore
+
+      - name: Test
+        working-directory: applications/token-counter/dotnet
+        run: dotnet test AgentViewTokenCounter.sln -c Release --no-build --verbosity normal

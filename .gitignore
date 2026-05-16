@@ -1,3 +1,4 @@
+# Secrets — never commit
 .env
 .env.*
 !.env.example
@@ -5,11 +6,39 @@
 **/.env.*
 !**/.env.example
 
+# Python (occasional helper scripts)
 __pycache__/
 *.pyc
 .venv/
 venv/
 
+# Node (template tooling, screenshot pipelines)
+node_modules/
+
+# .NET build output (applications/)
+bin/
+obj/
+dist/
+*.user
+*.suo
+.vs/
+.vscode/
+.idea/
+
+# NuGet
+*.nupkg
+*.snupkg
+project.lock.json
+project.fragment.lock.json
+
+# Test results / coverage
+TestResults/
+coverage.*
+
+# OS junk
 .DS_Store
 Thumbs.db
-node_modules/  
+
+# Claude Code / agent tooling state
+.claude/launch.json
+.claude/settings.local.json

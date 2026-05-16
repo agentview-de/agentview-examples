@@ -1,0 +1,31 @@
+<Project>
+
+  <!--
+    Shared build properties for every project under this directory.
+    Having these here rather than in each .csproj means new projects
+    (e.g. the test project) inherit them automatically, and the
+    canonical list of "what this repo enforces" lives in one file.
+  -->
+
+  <PropertyGroup>
+    <!-- Language -->
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+
+    <!-- Strict analysis: treat every warning as an error so CI catches
+         regressions before they reach the example consumers. -->
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
+    <AnalysisLevel>latest-recommended</AnalysisLevel>
+    <!-- EnforceCodeStyleInBuild picks up .editorconfig style rules
+         (IDE* diagnostics) and surfacing them during msbuild. -->
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+
+    <!-- Metadata (shared; individual projects may override Version). -->
+    <Authors>agentView</Authors>
+    <Copyright>Copyright (c) agentView. MIT licensed.</Copyright>
+    <NeutralLanguage>en</NeutralLanguage>
+  </PropertyGroup>
+
+</Project>

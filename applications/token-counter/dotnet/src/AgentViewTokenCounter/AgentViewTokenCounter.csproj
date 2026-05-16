@@ -1,0 +1,67 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- WPF exe — platform-specific settings that don't belong in
+         Directory.Build.props because the test project is also net10.0
+         but must NOT be a WinExe or UseWPF project. -->
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <RootNamespace>AgentView.TokenCounter</RootNamespace>
+    <AssemblyName>AgentViewTokenCounter</AssemblyName>
+    <Version>1.0.0</Version>
+    <Description>Example Windows tray app that bridges claude.ai plan usage to an agentView display via an embedded WebView2 session. WPF, single-file self-contained .exe. Part of github.com/agentview-de/agentview-examples.</Description>
+    <Product>agentView Token Counter</Product>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationHighDpiMode>PerMonitorV2</ApplicationHighDpiMode>
+  </PropertyGroup>
+
+  <!-- Release-only: produce a single self-contained .exe -->
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <PublishSingleFile>true</PublishSingleFile>
+    <SelfContained>true</SelfContained>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+    <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
+    <DebugType>embedded</DebugType>
+  </PropertyGroup>
+
+  <!-- WPF's SDK omits System.IO + System.Net.Http from the implicit
+       using set. Add them globally so our services don't sprinkle
+       per-file usings just to compile under WPF. -->
+  <ItemGroup>
+    <Using Include="System.IO" />
+    <Using Include="System.Net.Http" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- WebView2 hosts an embedded Chromium-based browser inside the
+         tray app. We use it to keep a long-lived authenticated
+         claude.ai session in our own app-scoped cookie store, so we
+         do not have to extract cookies from the user's system
+         Chrome / Edge (which became unfeasible with Chromium 127+
+         App-Bound Encryption).
+
+         .Wpf variant lets us re-parent the WebView2 control between a
+         hidden background host Window and the visible LoginWindow
+         without losing the cookie jar. -->
+    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.2792.45" />
+
+    <!-- WPF doesn't ship a NotifyIcon. Hardcodet's library is the de-
+         facto standard, MIT-licensed, and has been maintained since
+         the early .NET 4 days. The XAML-bindable ContextMenu it
+         exposes is the reason we picked it over rolling our own
+         P/Invoke shim around Shell_NotifyIcon. -->
+    <PackageReference Include="H.NotifyIcon.Wpf" Version="2.3.1" />
+  </ItemGroup>
+
+  <!-- Self-hosted display assets. The .exe publishes the HTML + the
+       initial data-slot JSON to agentView itself via the public REST
+       API, so users never need to install the token-counter-standalone
+       store template manually. -->
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\display.html" />
+    <EmbeddedResource Include="Resources\token-usage.default.json" />
+  </ItemGroup>
+
+</Project>

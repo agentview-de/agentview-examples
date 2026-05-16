@@ -1,0 +1,190 @@
+<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:sys="clr-namespace:System;assembly=System.Runtime">
+
+    <!--
+        Design tokens — single source of truth for colors, typography
+        and spacing.
+
+        Philosophy ("the €100k designer's answer, take 2"):
+
+        The Token Counter desktop app is a UTILITY that handles API
+        keys and live sessions. It should disappear: the data on the
+        physical display is the star. The configuration UI must not
+        compete with it.
+
+        Premium product apps (Linear, Stripe Atlas, Things 3,
+        1Password, Notion) share four moves:
+
+            1. The brand colour does NOT live in the tool UI. It's
+               reserved for the app icon, marketing site, app-store
+               screenshots. Linear's desktop app has Linear-purple
+               literally nowhere inside the chrome.
+
+            2. CTAs are confident neutrals (charcoal, white, OR
+               system-tint). Saturated brand-colour buttons are a
+               2018-startup tell.
+
+            3. The single accent is FUNCTIONAL: focus rings, the
+               active step dot, the caret, link colour. It earns its
+               place by mapping to interaction state, not decoration.
+
+            4. Warm off-white backgrounds, micro shadows instead of
+               borders, type-first hierarchy. Apple Sonoma and Linear
+               agree on this language.
+
+        Concretely:
+            * agentView's plum branding lives at the Token Counter
+              *display itself*, not in this configuration window.
+            * The accent in this tool is "Ink Blue" — a deep,
+              restrained navy that reads "serious developer tool"
+              without being a SaaS purple or generic system blue.
+            * Charcoal does the action work; neutrals do the rest.
+    -->
+
+    <!-- ── Surfaces ──────────────────────────────────────────────── -->
+    <!-- Warm off-white background (Linear's surface), pure white
+         cards. The tint is subtle enough that screenshots still
+         look "clean", but on screen the warmth removes the cold
+         hospital-grey feel of pure-cool palettes. -->
+    <Color x:Key="Color.Background">#FAFAF7</Color>
+    <Color x:Key="Color.Surface">#FFFFFF</Color>
+    <Color x:Key="Color.SurfaceMuted">#F3F2EE</Color>
+    <Color x:Key="Color.Divider">#EBEAE6</Color>
+    <Color x:Key="Color.BorderStrong">#D6D3CE</Color>
+
+    <!-- ── Text ──────────────────────────────────────────────────────
+         Three-step grey scale tuned for premium readability on a warm
+         #FAFAF7 background:
+
+           * Primary  #16151A — body & headlines. Soft-black with a
+                                hair of warmth so it doesn't fight the
+                                cream background.
+           * Secondary #4A4854 — sub-headings, sync-strip metadata.
+                                 Cooler / a touch darker than the old
+                                 #5B5862 so it reads as "structural"
+                                 instead of "faded".
+           * Muted    #76747F — captions, helper text, KV keys.
+                                Darker than the old #92909A which was
+                                ghosting on bright displays.
+
+         Premium products (Linear, Stripe, Notion) hold their muted
+         grey within 30-35 ΔL of the body color. We were sitting at
+         ~55 ΔL which made captions disappear — pulled back to 33. -->
+    <Color x:Key="Color.TextPrimary">#16151A</Color>
+    <Color x:Key="Color.TextSecondary">#4A4854</Color>
+    <Color x:Key="Color.TextMuted">#76747F</Color>
+    <Color x:Key="Color.TextOnAccent">#FFFFFF</Color>
+
+    <!-- ── Charcoal: the primary-action colour. Same soft-black as
+         the body text, so the CTA reads as "of the same family" as
+         the content, just confidently filled. -->
+    <Color x:Key="Color.Charcoal">#16151A</Color>
+    <Color x:Key="Color.CharcoalHover">#2A282E</Color>
+    <Color x:Key="Color.CharcoalPressed">#000000</Color>
+
+    <!-- ── Accent: Ink Blue. Used ONLY for functional moments
+         (focus ring, caret, active step dot, checkbox tick fill,
+         hover-link colour). Never on a primary button background.
+         Sourced from financial / pro-tool palettes (Bloomberg-ish,
+         old Stripe), where it reads "trustworthy", not "trendy". -->
+    <Color x:Key="Color.Accent">#0F4C81</Color>
+    <Color x:Key="Color.AccentHover">#0C3E69</Color>
+    <Color x:Key="Color.AccentPressed">#082F50</Color>
+    <Color x:Key="Color.AccentSoft">#E3ECF4</Color>
+
+    <!-- ── Semantic ──────────────────────────────────────────────── -->
+    <Color x:Key="Color.Success">#1F9B5A</Color>
+    <Color x:Key="Color.SuccessSoft">#DAEFE3</Color>
+    <Color x:Key="Color.Danger">#C1273A</Color>
+    <Color x:Key="Color.DangerSoft">#FAE3E6</Color>
+    <Color x:Key="Color.Warning">#A06800</Color>
+
+    <!-- ── Bar severity scale ─────────────────────────────────────
+         Four tiers that mirror display.html's `severityFor()`:
+
+           low  (  0-29 %)  → calm green — "plenty of room"
+           mid  ( 30-79 %)  → amber      — "heading up"
+           high ( 80-94 %)  → orange     — "getting close"
+           crit (95-100 %)  → red        — "do something now"
+
+         These are slightly de-saturated versions of the Tailwind
+         green-600 / amber-600 / orange-600 / red-600 stops so they
+         read as "data viz" rather than "buy-now button". -->
+    <Color x:Key="Color.Bar.Low">#1F9B5A</Color>
+    <Color x:Key="Color.Bar.Mid">#C99A2E</Color>
+    <Color x:Key="Color.Bar.High">#D9750E</Color>
+    <Color x:Key="Color.Bar.Crit">#C1273A</Color>
+
+    <!-- Brushes -->
+    <SolidColorBrush x:Key="Brush.Background"      Color="{StaticResource Color.Background}"/>
+    <SolidColorBrush x:Key="Brush.Surface"         Color="{StaticResource Color.Surface}"/>
+    <SolidColorBrush x:Key="Brush.SurfaceMuted"    Color="{StaticResource Color.SurfaceMuted}"/>
+    <SolidColorBrush x:Key="Brush.Divider"         Color="{StaticResource Color.Divider}"/>
+    <SolidColorBrush x:Key="Brush.BorderStrong"    Color="{StaticResource Color.BorderStrong}"/>
+
+    <SolidColorBrush x:Key="Brush.TextPrimary"     Color="{StaticResource Color.TextPrimary}"/>
+    <SolidColorBrush x:Key="Brush.TextSecondary"   Color="{StaticResource Color.TextSecondary}"/>
+    <SolidColorBrush x:Key="Brush.TextMuted"       Color="{StaticResource Color.TextMuted}"/>
+    <SolidColorBrush x:Key="Brush.TextOnAccent"    Color="{StaticResource Color.TextOnAccent}"/>
+
+    <SolidColorBrush x:Key="Brush.Charcoal"        Color="{StaticResource Color.Charcoal}"/>
+    <SolidColorBrush x:Key="Brush.CharcoalHover"   Color="{StaticResource Color.CharcoalHover}"/>
+    <SolidColorBrush x:Key="Brush.CharcoalPressed" Color="{StaticResource Color.CharcoalPressed}"/>
+
+    <SolidColorBrush x:Key="Brush.Accent"          Color="{StaticResource Color.Accent}"/>
+    <SolidColorBrush x:Key="Brush.AccentHover"     Color="{StaticResource Color.AccentHover}"/>
+    <SolidColorBrush x:Key="Brush.AccentPressed"   Color="{StaticResource Color.AccentPressed}"/>
+    <SolidColorBrush x:Key="Brush.AccentSoft"      Color="{StaticResource Color.AccentSoft}"/>
+
+    <SolidColorBrush x:Key="Brush.Success"         Color="{StaticResource Color.Success}"/>
+    <SolidColorBrush x:Key="Brush.SuccessSoft"     Color="{StaticResource Color.SuccessSoft}"/>
+    <SolidColorBrush x:Key="Brush.Danger"          Color="{StaticResource Color.Danger}"/>
+    <SolidColorBrush x:Key="Brush.DangerSoft"      Color="{StaticResource Color.DangerSoft}"/>
+    <SolidColorBrush x:Key="Brush.Warning"         Color="{StaticResource Color.Warning}"/>
+
+    <SolidColorBrush x:Key="Brush.Bar.Low"         Color="{StaticResource Color.Bar.Low}"/>
+    <SolidColorBrush x:Key="Brush.Bar.Mid"         Color="{StaticResource Color.Bar.Mid}"/>
+    <SolidColorBrush x:Key="Brush.Bar.High"        Color="{StaticResource Color.Bar.High}"/>
+    <SolidColorBrush x:Key="Brush.Bar.Crit"        Color="{StaticResource Color.Bar.Crit}"/>
+
+    <!-- ── Typography ────────────────────────────────────────────── -->
+    <FontFamily x:Key="Font.Sans">Segoe UI Variable, Segoe UI, system-ui</FontFamily>
+
+    <sys:Double x:Key="FontSize.Title">26</sys:Double>
+    <sys:Double x:Key="FontSize.Section">16</sys:Double>
+    <sys:Double x:Key="FontSize.Body">13.5</sys:Double>
+    <sys:Double x:Key="FontSize.Caption">12</sys:Double>
+    <sys:Double x:Key="FontSize.Label">12</sys:Double>
+
+    <!-- ── Spacing scale (DIPs) ─────────────────────────────────── -->
+    <sys:Double x:Key="Space.1">4</sys:Double>
+    <sys:Double x:Key="Space.2">8</sys:Double>
+    <sys:Double x:Key="Space.3">12</sys:Double>
+    <sys:Double x:Key="Space.4">16</sys:Double>
+    <sys:Double x:Key="Space.5">20</sys:Double>
+    <sys:Double x:Key="Space.6">24</sys:Double>
+    <sys:Double x:Key="Space.8">32</sys:Double>
+
+    <!-- ── Radii ──────────────────────────────────────────────── -->
+    <CornerRadius x:Key="Radius.S">6</CornerRadius>
+    <CornerRadius x:Key="Radius.M">8</CornerRadius>
+    <CornerRadius x:Key="Radius.L">12</CornerRadius>
+    <CornerRadius x:Key="Radius.Pill">9999</CornerRadius>
+
+    <!-- ── Default control sizes ─────────────────────────────── -->
+    <sys:Double x:Key="Size.ControlHeight">32</sys:Double>
+    <sys:Double x:Key="Size.ButtonHeight">32</sys:Double>
+
+    <!-- ── Shadow: subtle lift for cards. Drop-shadow on a card with a
+         1-px blur radius and very low opacity reads as "paper on
+         desk", not "Bootstrap shadow-md". -->
+    <DropShadowEffect x:Key="Shadow.Card"
+                      Color="Black"
+                      ShadowDepth="1"
+                      Direction="270"
+                      BlurRadius="6"
+                      Opacity="0.05"/>
+
+</ResourceDictionary>

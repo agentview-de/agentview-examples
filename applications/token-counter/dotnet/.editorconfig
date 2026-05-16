@@ -1,0 +1,86 @@
+root = true
+
+# ── All files ──────────────────────────────────────────────────────────
+[*]
+charset                  = utf-8
+end_of_line              = crlf
+indent_style             = space
+indent_size              = 4
+trim_trailing_whitespace = true
+insert_final_newline     = true
+
+# ── C# ────────────────────────────────────────────────────────────────
+[*.cs]
+
+# File-scoped namespaces (C# 10+). Every .cs in this repo uses them;
+# enforce here so new files don't regress.
+csharp_style_namespace_declarations                    = file_scoped:suggestion
+
+# using directives go OUTSIDE the namespace declaration.
+csharp_using_directive_placement                       = outside_namespace:suggestion
+
+# var: prefer explicit types for built-in types (int, string, bool);
+# allow var when the type is already obvious from the right-hand side.
+csharp_style_var_for_built_in_types                    = false:suggestion
+csharp_style_var_when_type_is_apparent                 = true:suggestion
+csharp_style_var_elsewhere                             = false:suggestion
+
+# Braces: always use braces on if/else/for/foreach/while/using blocks.
+# Omitting them is the #1 off-by-one bug trigger in maintenance code.
+# Set as suggestion so IDE tooling nudges but the build stays green
+# for pre-existing single-statement patterns.
+csharp_prefer_braces                                   = true:suggestion
+
+# Expression-bodied members: allowed for properties and simple methods;
+# not required (teaching code is clearer with explicit bodies).
+csharp_style_expression_bodied_methods                 = when_on_single_line:suggestion
+csharp_style_expression_bodied_properties              = true:suggestion
+csharp_style_expression_bodied_constructors            = false:suggestion
+
+# Null checks: prefer pattern matching over == null / != null.
+csharp_style_pattern_matching_over_is_with_cast_check  = true:suggestion
+csharp_style_prefer_null_check_over_type_check         = true:suggestion
+
+# String literals: prefer interpolated strings over string.Format.
+dotnet_style_prefer_simplified_interpolation           = true:suggestion
+
+# Accessibility modifiers: explicit on non-interface members. Interface
+# members are implicitly public and do not need a modifier.
+dotnet_style_require_accessibility_modifiers           = for_non_interface_members:warning
+
+# Object / collection initializers: prefer them for cleaner construction.
+dotnet_style_object_initializer                        = true:suggestion
+dotnet_style_collection_initializer                    = true:suggestion
+
+# ── Analyzer severities ───────────────────────────────────────────────
+
+# CA1031: do not catch general exception types. This app intentionally
+# catches Exception in boundary error-handling (ping loop, unhandled-
+# exception handlers, log rotation). Suppress at the project level so
+# we can use the rule where it matters without sprinkling #pragma.
+dotnet_diagnostic.CA1031.severity                      = none
+
+# CA1062: validate arguments of public methods. Disabled — nullable
+# reference types already express non-nullability contracts better.
+dotnet_diagnostic.CA1062.severity                      = none
+
+# CA2007: ConfigureAwait(false). In a WPF STA app every awaiter MUST
+# return to the UI thread (ConfigureAwait(true) is the correct call
+# everywhere here). The rule fires because it doesn't know we're WPF.
+dotnet_diagnostic.CA2007.severity                      = none
+
+# IDE0290: primary constructor suggestion. Primary ctors omit XML doc
+# on parameters, which we need on the coordinator / service classes.
+dotnet_diagnostic.IDE0290.severity                     = none
+
+# IDE0028 / IDE0300: collection-expression suggestions. The teaching
+# code uses explicit new List<T>() deliberately to show the type.
+dotnet_diagnostic.IDE0028.severity                     = none
+dotnet_diagnostic.IDE0300.severity                     = none
+
+# IDE0301: use collection-expression for list.
+dotnet_diagnostic.IDE0301.severity                     = none
+
+# CA1515: Make public types internal. This is an exe/app project,
+# public/internal distinction here is not an API boundary concern.
+dotnet_diagnostic.CA1515.severity                      = none

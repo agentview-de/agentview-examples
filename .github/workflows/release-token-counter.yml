@@ -1,0 +1,96 @@
+# GitHub release workflow for applications/token-counter.
+#
+# Trigger: push a tag of the form `token-counter/v<X>.<Y>.<Z>`.
+# Result:  a GitHub Release named "Token Counter v<X>.<Y>.<Z>" with the
+#          single-file AgentViewTokenCounter.exe + a SHA-256 sidecar
+#          attached so users can verify the binary they downloaded.
+#
+# The action is otherwise idle. Pushing to main, opening PRs, etc. do
+# nothing here — the only build that exists in this repo is the
+# release build, kicked off by a tag.
+
+name: Release Token Counter
+
+on:
+  push:
+    tags:
+      - 'token-counter/v*'
+
+permissions:
+  contents: write   # needed to create the GitHub Release + upload assets
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 10 SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          # 10.0.x is still in preview at the time of writing; once 10.0
+          # is GA this can drop to a stable channel pin.
+          dotnet-version: '10.0.x'
+
+      - name: Derive version from tag
+        id: ver
+        shell: pwsh
+        run: |
+          # Tag shape: refs/tags/token-counter/v1.2.3 → 1.2.3
+          $raw = "${{ github.ref_name }}"
+          $v   = $raw -replace '^token-counter/v',''
+          if (-not ($v -match '^\d+\.\d+\.\d+(-[\w\.]+)?$')) {
+            Write-Error "Tag $raw does not match token-counter/vX.Y.Z(-pre)"
+            exit 1
+          }
+          "version=$v" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          Write-Host "Version: $v"
+
+      - name: Publish single-file Windows .exe
+        working-directory: applications/token-counter/dotnet
+        run: |
+          dotnet publish src/AgentViewTokenCounter/AgentViewTokenCounter.csproj `
+            -c Release `
+            -r win-x64 `
+            -o dist `
+            -p:Version=${{ steps.ver.outputs.version }}
+
+      - name: Compute SHA-256
+        id: hash
+        shell: pwsh
+        working-directory: applications/token-counter/dotnet/dist
+        run: |
+          $h = (Get-FileHash AgentViewTokenCounter.exe -Algorithm SHA256).Hash.ToLower()
+          "$h *AgentViewTokenCounter.exe" | Out-File -Encoding ascii AgentViewTokenCounter.exe.sha256
+          "sha256=$h" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          Write-Host "SHA-256: $h"
+
+      - name: Create GitHub Release + upload assets
+        uses: softprops/action-gh-release@v2
+        with:
+          name: "Token Counter v${{ steps.ver.outputs.version }}"
+          # Body intentionally minimal — release notes are maintained
+          # by hand on the release page after the upload completes.
+          # The checksum is the one piece of information users need
+          # *immediately* on the download page for verification.
+          body: |
+            Single-file Windows .exe build of `applications/token-counter`.
+
+            - Target: `win-x64`
+            - .NET runtime: bundled (self-contained)
+            - WebView2 runtime: required on the target machine
+            - SHA-256 (Windows): `${{ steps.hash.outputs.sha256 }}`
+
+            Verify in PowerShell before running:
+            ```powershell
+            (Get-FileHash AgentViewTokenCounter.exe -Algorithm SHA256).Hash
+            ```
+
+            Source: tag `${{ github.ref_name }}` · commit `${{ github.sha }}`.
+          files: |
+            applications/token-counter/dotnet/dist/AgentViewTokenCounter.exe
+            applications/token-counter/dotnet/dist/AgentViewTokenCounter.exe.sha256
+          draft: false
+          prerelease: ${{ contains(steps.ver.outputs.version, '-') }}

@@ -1,0 +1,36 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <!-- Tests reference WPF models but are not a WPF app themselves.
+         UseWPF pulls in the WPF presentation assemblies needed because
+         the app project's models reference them transitively. -->
+    <UseWPF>true</UseWPF>
+    <IsTestProject>true</IsTestProject>
+    <!-- Exact version pinning so CI doesn't drift. -->
+    <Version>1.0.0</Version>
+    <!-- Tests write temp files; never produce single-file output. -->
+    <PublishSingleFile>false</PublishSingleFile>
+
+    <!--
+      Analyzer suppressions specific to test projects:
+      CA1707 — xUnit "MethodUnderTest_Scenario_Expected" naming uses underscores
+               intentionally; this is a widely accepted test-naming convention.
+    -->
+    <NoWarn>$(NoWarn);CA1707</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk"       Version="17.12.0"/>
+    <PackageReference Include="xunit"                        Version="2.9.2"/>
+    <PackageReference Include="xunit.runner.visualstudio"    Version="2.8.2">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\AgentViewTokenCounter\AgentViewTokenCounter.csproj"/>
+  </ItemGroup>
+
+</Project>

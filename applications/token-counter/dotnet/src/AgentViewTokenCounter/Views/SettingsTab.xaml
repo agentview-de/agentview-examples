@@ -1,0 +1,296 @@
+<UserControl x:Class="AgentView.TokenCounter.Views.SettingsTab"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Background="{StaticResource Brush.Background}"
+             FontFamily="{StaticResource Font.Sans}"
+             TextElement.Foreground="{StaticResource Brush.TextPrimary}"
+             UseLayoutRounding="True">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- ── Two-column settings body ──────────────────────────── -->
+        <ScrollViewer Grid.Row="0" Padding="20,16,20,12"
+                      VerticalScrollBarVisibility="Auto"
+                      HorizontalScrollBarVisibility="Disabled">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="14"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- ─── LEFT COLUMN: Connection + Advanced ────────── -->
+                <StackPanel Grid.Column="0">
+
+                    <Border Style="{StaticResource Card}" Padding="0" Margin="0,0,0,14">
+                        <StackPanel>
+                            <StackPanel Margin="22,18,22,2">
+                                <TextBlock FontSize="{StaticResource FontSize.Section}"
+                                           FontWeight="SemiBold"
+                                           Foreground="{StaticResource Brush.TextPrimary}"
+                                           Text="Connection"/>
+                                <TextBlock Style="{StaticResource Text.Caption}" Margin="0,2,0,0"
+                                           Text="Where the tray pushes token counts"/>
+                            </StackPanel>
+
+                            <!-- agentView server -->
+                            <Grid Margin="22,14,22,10">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="170"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                    <TextBlock FontSize="{StaticResource FontSize.Body}" FontWeight="SemiBold"
+                                               Foreground="{StaticResource Brush.TextPrimary}" Text="agentView server"/>
+                                    <TextBlock Style="{StaticResource Text.Caption}" Margin="0,1,0,0"
+                                               Text="Usually agentview.de"/>
+                                </StackPanel>
+                                <TextBox Grid.Column="1" x:Name="BaseUrlBox"
+                                         FontFamily="Consolas, Menlo, monospace"
+                                         TextChanged="OnAnyFieldChanged"/>
+                            </Grid>
+
+                            <!-- Data slot -->
+                            <Grid Margin="22,8,22,10">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="170"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                    <TextBlock FontSize="{StaticResource FontSize.Body}" FontWeight="SemiBold"
+                                               Foreground="{StaticResource Brush.TextPrimary}" Text="Data slot"/>
+                                    <TextBlock Style="{StaticResource Text.Caption}" Margin="0,1,0,0"
+                                               Text="Slug the tray writes into"/>
+                                </StackPanel>
+                                <TextBox Grid.Column="1" x:Name="SlugBox"
+                                         FontFamily="Consolas, Menlo, monospace"
+                                         TextChanged="OnAnyFieldChanged"/>
+                            </Grid>
+
+                            <!-- Group -->
+                            <Grid Margin="22,8,22,10">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="170"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                    <TextBlock FontSize="{StaticResource FontSize.Body}" FontWeight="SemiBold"
+                                               Foreground="{StaticResource Brush.TextPrimary}" Text="Group"/>
+                                    <TextBlock Style="{StaticResource Text.Caption}" Margin="0,1,0,0"
+                                               Text="Optional — leave blank for personal"/>
+                                </StackPanel>
+                                <TextBox Grid.Column="1" x:Name="GroupIdBox"
+                                         FontFamily="Consolas, Menlo, monospace"
+                                         TextChanged="OnAnyFieldChanged"/>
+                            </Grid>
+
+                            <!-- API key -->
+                            <Grid Margin="22,8,22,20">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="170"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                    <TextBlock FontSize="{StaticResource FontSize.Body}" FontWeight="SemiBold"
+                                               Foreground="{StaticResource Brush.TextPrimary}" Text="API key"/>
+                                    <TextBlock Style="{StaticResource Text.Caption}" Margin="0,1,0,0"
+                                               Text="avk_… · DPAPI-protected on disk"/>
+                                </StackPanel>
+                                <Grid Grid.Column="1">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <PasswordBox Grid.Column="0" x:Name="ApiKeyBox"
+                                                 FontFamily="Consolas, Menlo, monospace"
+                                                 PasswordChanged="OnAnyFieldChanged"/>
+                                    <Button Grid.Column="1"
+                                            x:Name="ClearApiKeyButton"
+                                            Style="{StaticResource Button.Ghost}"
+                                            Content="Clear"
+                                            MinWidth="60"
+                                            Margin="8,0,0,0"
+                                            Click="OnClearApiKeyClicked"/>
+                                </Grid>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Advanced card -->
+                    <Border Style="{StaticResource Card}" Padding="0">
+                        <StackPanel>
+                            <StackPanel Margin="22,18,22,10">
+                                <TextBlock FontSize="{StaticResource FontSize.Section}"
+                                           FontWeight="SemiBold"
+                                           Foreground="{StaticResource Brush.TextPrimary}"
+                                           Text="Advanced"/>
+                            </StackPanel>
+
+                            <Button x:Name="OpenLogsButton"
+                                    Style="{StaticResource Button.Ghost}"
+                                    BorderThickness="0"
+                                    HorizontalContentAlignment="Stretch"
+                                    Margin="14,0,14,6"
+                                    Padding="8,10"
+                                    Click="OnOpenLogsClicked">
+                                <!-- Stacked, not two-column: the %APPDATA% path
+                                     is long enough that a right-aligned hint
+                                     column collides with the label. Label on
+                                     top, path muted beneath — never clips. -->
+                                <StackPanel>
+                                    <TextBlock Text="Open config + logs folder"
+                                               FontSize="{StaticResource FontSize.Body}"
+                                               Foreground="{StaticResource Brush.TextPrimary}"/>
+                                    <TextBlock Text="%APPDATA%\agentView-token-counter"
+                                               FontFamily="Consolas, Menlo, monospace"
+                                               Style="{StaticResource Text.Caption}"
+                                               TextTrimming="CharacterEllipsis"
+                                               Margin="0,3,0,0"/>
+                                </StackPanel>
+                            </Button>
+
+                            <Rectangle Fill="{StaticResource Brush.Divider}" Height="1" Margin="22,0,0,0"/>
+
+                            <Button x:Name="ResetButton"
+                                    Style="{StaticResource Button.Ghost}"
+                                    BorderThickness="0"
+                                    HorizontalContentAlignment="Stretch"
+                                    Margin="14,6,14,14"
+                                    Padding="8,10"
+                                    Click="OnResetClicked">
+                                <StackPanel>
+                                    <TextBlock Text="Reset to defaults"
+                                               FontSize="{StaticResource FontSize.Body}"
+                                               Foreground="{StaticResource Brush.Danger}"/>
+                                    <TextBlock Text="Clears the configured display + key"
+                                               Style="{StaticResource Text.Caption}"
+                                               TextWrapping="Wrap"
+                                               Margin="0,3,0,0"/>
+                                </StackPanel>
+                            </Button>
+                        </StackPanel>
+                    </Border>
+
+                </StackPanel>
+
+                <!-- ─── RIGHT COLUMN: Behavior ────────────────────── -->
+                <StackPanel Grid.Column="2">
+
+                    <Border Style="{StaticResource Card}" Padding="0">
+                        <StackPanel>
+                            <StackPanel Margin="22,18,22,2">
+                                <TextBlock FontSize="{StaticResource FontSize.Section}"
+                                           FontWeight="SemiBold"
+                                           Foreground="{StaticResource Brush.TextPrimary}"
+                                           Text="Behavior"/>
+                                <TextBlock Style="{StaticResource Text.Caption}" Margin="0,2,0,0"
+                                           Text="How the tray runs"/>
+                            </StackPanel>
+
+                            <!-- Sync interval (stepper) -->
+                            <Grid Margin="22,14,22,14">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                    <TextBlock FontSize="{StaticResource FontSize.Body}" FontWeight="SemiBold"
+                                               Foreground="{StaticResource Brush.TextPrimary}" Text="Sync interval"/>
+                                    <TextBlock Style="{StaticResource Text.Caption}" Margin="0,1,0,0"
+                                               Text="Display polls every 120 s"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                    <Border Style="{StaticResource StepperFrame}">
+                                        <StackPanel Orientation="Horizontal">
+                                            <Button Style="{StaticResource StepperButton}" Content="−"
+                                                    Click="OnIntervalDecrement"/>
+                                            <TextBox x:Name="IntervalBox" Style="{StaticResource StepperValue}"
+                                                     TextChanged="OnAnyFieldChanged"/>
+                                            <Button Style="{StaticResource StepperButton}" Content="+"
+                                                    Click="OnIntervalIncrement"/>
+                                        </StackPanel>
+                                    </Border>
+                                    <TextBlock Margin="8,0,0,0" VerticalAlignment="Center"
+                                               Style="{StaticResource Text.Caption}" Text="seconds"/>
+                                </StackPanel>
+                            </Grid>
+
+                            <Rectangle Fill="{StaticResource Brush.Divider}" Height="1" Margin="22,0,0,0"/>
+
+                            <!-- Include Opus / Sonnet splits -->
+                            <Grid Margin="22,14,22,14">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                    <TextBlock FontSize="{StaticResource FontSize.Body}" FontWeight="SemiBold"
+                                               Foreground="{StaticResource Brush.TextPrimary}"
+                                               Text="Include weekly Opus / Sonnet splits"/>
+                                    <TextBlock Style="{StaticResource Text.Caption}" Margin="0,1,0,0"
+                                               Text="Adds per-model meters to the Overview"/>
+                                </StackPanel>
+                                <CheckBox Grid.Column="1" x:Name="IncludeSplitsBox"
+                                          Style="{StaticResource Toggle}"
+                                          Checked="OnAnyFieldChanged" Unchecked="OnAnyFieldChanged"/>
+                            </Grid>
+
+                            <Rectangle Fill="{StaticResource Brush.Divider}" Height="1" Margin="22,0,0,0"/>
+
+                            <!-- Open at login -->
+                            <Grid Margin="22,14,22,20">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                    <TextBlock FontSize="{StaticResource FontSize.Body}" FontWeight="SemiBold"
+                                               Foreground="{StaticResource Brush.TextPrimary}"
+                                               Text="Open at Windows login"/>
+                                    <TextBlock Style="{StaticResource Text.Caption}" Margin="0,1,0,0"
+                                               Text="Starts minimised to the tray on boot"/>
+                                </StackPanel>
+                                <CheckBox Grid.Column="1" x:Name="AutoStartBox"
+                                          Style="{StaticResource Toggle}"
+                                          Checked="OnAnyFieldChanged" Unchecked="OnAnyFieldChanged"/>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+
+            </Grid>
+        </ScrollViewer>
+
+        <!-- ── Bottom save bar ──────────────────────────────────── -->
+        <Border Grid.Row="1"
+                BorderBrush="{StaticResource Brush.Divider}"
+                BorderThickness="0,1,0,0"
+                Padding="20,10">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel x:Name="UnsavedHint" Grid.Column="0" Orientation="Horizontal"
+                            VerticalAlignment="Center" Visibility="Collapsed">
+                    <Ellipse Width="7" Height="7" Fill="{StaticResource Brush.Warning}"/>
+                    <TextBlock Margin="8,0,0,0"
+                               Foreground="{StaticResource Brush.TextSecondary}"
+                               FontSize="{StaticResource FontSize.Body}"
+                               Text="Unsaved changes"/>
+                </StackPanel>
+
+                <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right">
+                    <Button x:Name="RevertButton" Style="{StaticResource Button.Ghost}"
+                            Content="Revert" Margin="0,0,8,0" Click="OnRevertClicked"/>
+                    <Button x:Name="SaveButton"  Style="{StaticResource Button.Primary}"
+                            Content="Save"      Click="OnSaveClicked"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>

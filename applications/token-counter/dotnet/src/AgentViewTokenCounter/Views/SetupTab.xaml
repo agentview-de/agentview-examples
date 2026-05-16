@@ -1,0 +1,381 @@
+<UserControl x:Class="AgentView.TokenCounter.Views.SetupTab"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Background="{StaticResource Brush.Background}"
+             FontFamily="{StaticResource Font.Sans}"
+             TextElement.Foreground="{StaticResource Brush.TextPrimary}"
+             UseLayoutRounding="True"
+             TextOptions.TextFormattingMode="Ideal"
+             TextOptions.TextRenderingMode="ClearType">
+    <UserControl.Resources>
+        <Style x:Key="StepDot" TargetType="Border">
+            <Setter Property="Width"  Value="22"/>
+            <Setter Property="Height" Value="22"/>
+            <Setter Property="CornerRadius" Value="999"/>
+            <Setter Property="Background"  Value="{StaticResource Brush.Divider}"/>
+        </Style>
+        <Style x:Key="StepDot.Active" TargetType="Border" BasedOn="{StaticResource StepDot}">
+            <Setter Property="Background" Value="{StaticResource Brush.Accent}"/>
+        </Style>
+        <Style x:Key="StepDot.Done" TargetType="Border" BasedOn="{StaticResource StepDot}">
+            <Setter Property="Background" Value="{StaticResource Brush.Success}"/>
+        </Style>
+        <Style x:Key="StepDotText" TargetType="TextBlock">
+            <Setter Property="FontSize"    Value="11"/>
+            <Setter Property="FontWeight"  Value="SemiBold"/>
+            <Setter Property="Foreground"  Value="{StaticResource Brush.TextMuted}"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+            <Setter Property="VerticalAlignment"   Value="Center"/>
+        </Style>
+        <Style x:Key="StepDotText.Active" TargetType="TextBlock" BasedOn="{StaticResource StepDotText}">
+            <Setter Property="Foreground" Value="{StaticResource Brush.TextOnAccent}"/>
+        </Style>
+    </UserControl.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- ── Step pills + intro caption ──────────────────────── -->
+        <Grid Grid.Row="0" Margin="20,16,20,12">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                <Border x:Name="Step1Pill" Style="{StaticResource StepDot}">
+                    <TextBlock x:Name="Step1Text" Style="{StaticResource StepDotText}" Text="1"/>
+                </Border>
+                <TextBlock Margin="6,0,12,0" VerticalAlignment="Center" FontWeight="SemiBold"
+                           FontSize="{StaticResource FontSize.Body}" Text="Claude"/>
+
+                <Rectangle Width="22" Height="1" Fill="{StaticResource Brush.Divider}" VerticalAlignment="Center"/>
+
+                <Border x:Name="Step2Pill" Style="{StaticResource StepDot}" Margin="12,0,0,0">
+                    <TextBlock x:Name="Step2Text" Style="{StaticResource StepDotText}" Text="2"/>
+                </Border>
+                <TextBlock Margin="6,0,12,0" VerticalAlignment="Center" FontWeight="SemiBold"
+                           FontSize="{StaticResource FontSize.Body}" Text="agentView"/>
+
+                <Rectangle Width="22" Height="1" Fill="{StaticResource Brush.Divider}" VerticalAlignment="Center"/>
+
+                <Border x:Name="Step3Pill" Style="{StaticResource StepDot}" Margin="12,0,0,0">
+                    <TextBlock x:Name="Step3Text" Style="{StaticResource StepDotText}" Text="3"/>
+                </Border>
+                <TextBlock Margin="6,0,0,0" VerticalAlignment="Center" FontWeight="SemiBold"
+                           FontSize="{StaticResource FontSize.Body}" Text="Publish"/>
+            </StackPanel>
+
+            <TextBlock Grid.Column="1"
+                       Style="{StaticResource Text.Caption}"
+                       VerticalAlignment="Center"
+                       TextAlignment="Right"
+                       MaxWidth="320"
+                       Text="Three short steps. Everything ships inside this app — no agentView store template required."/>
+        </Grid>
+
+        <ScrollViewer Grid.Row="1"
+                      VerticalScrollBarVisibility="Auto"
+                      HorizontalScrollBarVisibility="Disabled">
+            <StackPanel>
+
+                <!-- ── Step cards: 3-column row ──────────────────── -->
+                <Grid Margin="20,4,20,12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="10"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="10"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Each card is a 2-row grid: content (row 0, grows)
+                         + a bottom-pinned action row (row 1). Because the
+                         three Borders share one Grid row they are equal
+                         height, so the action rows — and therefore the
+                         buttons — line up across all three cards. -->
+
+                    <!-- 1) Connect Claude -->
+                    <Border Grid.Column="0" Style="{StaticResource Card}">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+
+                            <StackPanel Grid.Row="0">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0"
+                                               Style="{StaticResource Text.Section}"
+                                               Text="1. Connect Claude"/>
+                                    <StackPanel Grid.Column="1"
+                                                Orientation="Horizontal"
+                                                VerticalAlignment="Center">
+                                        <Ellipse x:Name="ClaudeBullet"
+                                                 Style="{StaticResource StatusBullet.Small}"
+                                                 Margin="0,0,6,0"/>
+                                        <TextBlock x:Name="ClaudePillText"
+                                                   Style="{StaticResource PillText.Pending}"
+                                                   Text="Not signed in"/>
+                                    </StackPanel>
+                                </Grid>
+
+                                <TextBlock Style="{StaticResource Text.Caption}" Margin="0,6,0,16"
+                                           TextWrapping="Wrap"
+                                           Text="The wizard opens claude.ai in an embedded browser. Credentials stay in a dedicated profile under %APPDATA%."/>
+
+                                <TextBlock Style="{StaticResource Text.Label}" Margin="0,0,0,4" Text="Account"/>
+                                <ComboBox x:Name="OrgPicker" IsEnabled="False" Margin="0,0,0,6"/>
+                                <TextBlock x:Name="OrgStatus" Style="{StaticResource Text.Caption}"
+                                           TextWrapping="Wrap"
+                                           Text="Auto-detected once signed in."/>
+
+                                <!-- Sign-out: caption-link (not a button)
+                                     so the action row stays one button and
+                                     stays aligned with the other cards.
+                                     Shown only while signed in. -->
+                                <TextBlock x:Name="ClaudeSignOutLine"
+                                           Margin="0,12,0,0"
+                                           Visibility="Collapsed"
+                                           FontSize="{StaticResource FontSize.Caption}">
+                                    <Hyperlink Click="OnClaudeSignOutClicked"
+                                               Foreground="{StaticResource Brush.Accent}">
+                                        <Hyperlink.Inlines>
+                                            <Run Text="Sign out of Claude"/>
+                                        </Hyperlink.Inlines>
+                                    </Hyperlink>
+                                </TextBlock>
+                            </StackPanel>
+
+                            <Button Grid.Row="1"
+                                    x:Name="ClaudeLoginButton"
+                                    Style="{StaticResource Button.Primary}"
+                                    Content="Sign in to Claude"
+                                    HorizontalAlignment="Left"
+                                    Margin="0,20,0,0"
+                                    Click="OnClaudeLoginClicked"/>
+                        </Grid>
+                    </Border>
+
+                    <!-- 2) Connect agentView -->
+                    <Border Grid.Column="2" Style="{StaticResource Card}">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+
+                            <StackPanel Grid.Row="0">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0"
+                                               Style="{StaticResource Text.Section}"
+                                               Text="2. Connect agentView"/>
+                                    <StackPanel Grid.Column="1"
+                                                Orientation="Horizontal"
+                                                VerticalAlignment="Center">
+                                        <Ellipse x:Name="AgentBullet"
+                                                 Style="{StaticResource StatusBullet.Small}"
+                                                 Margin="0,0,6,0"/>
+                                        <TextBlock x:Name="AgentPillText"
+                                                   Style="{StaticResource PillText.Pending}"
+                                                   Text="Not signed in"/>
+                                    </StackPanel>
+                                </Grid>
+
+                                <TextBlock Style="{StaticResource Text.Caption}" Margin="0,6,0,16"
+                                           TextWrapping="Wrap"
+                                           Text="Pick which of your displays should show the token counter, or create a new one."/>
+
+                                <TextBlock Style="{StaticResource Text.Label}" Margin="0,0,0,4" Text="Display"/>
+                                <ComboBox x:Name="DisplayPicker" IsEnabled="False" Margin="0,0,0,6"/>
+                                <TextBlock x:Name="DisplayStatus" Style="{StaticResource Text.Caption}"
+                                           TextWrapping="Wrap"
+                                           Text="Loads once signed in."/>
+
+                                <!-- Alt-path link lives in the content area
+                                     (not the action row) so the action row
+                                     stays a single button and lines up with
+                                     the other two cards. -->
+                                <TextBlock Margin="0,12,0,0"
+                                           TextWrapping="Wrap"
+                                           FontSize="{StaticResource FontSize.Caption}">
+                                    <Hyperlink x:Name="ApiKeyAltLink"
+                                               Click="OnUseApiKeyClicked"
+                                               Foreground="{StaticResource Brush.Accent}">
+                                        <Hyperlink.Inlines>
+                                            <Run Text="Use an API key instead →"/>
+                                        </Hyperlink.Inlines>
+                                    </Hyperlink>
+                                </TextBlock>
+
+                                <TextBlock x:Name="AgentSignOutLine"
+                                           Margin="0,6,0,0"
+                                           Visibility="Collapsed"
+                                           FontSize="{StaticResource FontSize.Caption}">
+                                    <Hyperlink Click="OnAgentSignOutClicked"
+                                               Foreground="{StaticResource Brush.Accent}">
+                                        <Hyperlink.Inlines>
+                                            <Run Text="Sign out of agentView"/>
+                                        </Hyperlink.Inlines>
+                                    </Hyperlink>
+                                </TextBlock>
+                            </StackPanel>
+
+                            <Button Grid.Row="1"
+                                    x:Name="AgentLoginButton"
+                                    Style="{StaticResource Button.Primary}"
+                                    Content="Sign in to agentView"
+                                    HorizontalAlignment="Left"
+                                    Margin="0,20,0,0"
+                                    Click="OnAgentLoginClicked"/>
+                        </Grid>
+                    </Border>
+
+                    <!-- 3) Publish display -->
+                    <Border Grid.Column="4" Style="{StaticResource Card}">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+
+                            <StackPanel Grid.Row="0">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0"
+                                               Style="{StaticResource Text.Section}"
+                                               Text="3. Publish display"/>
+                                    <StackPanel Grid.Column="1"
+                                                Orientation="Horizontal"
+                                                VerticalAlignment="Center">
+                                        <Ellipse x:Name="InstallBullet"
+                                                 Style="{StaticResource StatusBullet.Small}"
+                                                 Margin="0,0,6,0"/>
+                                        <TextBlock x:Name="InstallPillText"
+                                                   Style="{StaticResource PillText.Pending}"
+                                                   Text="Not published"/>
+                                    </StackPanel>
+                                </Grid>
+
+                                <TextBlock Style="{StaticResource Text.Caption}" Margin="0,6,0,16"
+                                           TextWrapping="Wrap"
+                                           Text="Creates a data slot, pushes the bundled HTML to your display, and mints a scoped API key."/>
+
+                                <!-- KV rows visible after first successful publish -->
+                                <StackPanel x:Name="InstallDetails" Visibility="Collapsed" Margin="0,0,0,4">
+                                    <Grid Margin="0,0,0,6">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Grid.Column="0" Style="{StaticResource KvKey}"
+                                                   VerticalAlignment="Center" Text="SLOT"/>
+                                        <TextBlock x:Name="InstallSlotValue" Grid.Column="1"
+                                                   Style="{StaticResource KvValue}"
+                                                   TextAlignment="Right"
+                                                   Text="claude-usage"/>
+                                    </Grid>
+                                    <Grid Margin="0,0,0,6">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Grid.Column="0" Style="{StaticResource KvKey}"
+                                                   VerticalAlignment="Center" Text="PUBLISHED"/>
+                                        <TextBlock x:Name="InstallPublishedValue" Grid.Column="1"
+                                                   Style="{StaticResource KvValue}"
+                                                   TextAlignment="Right"
+                                                   Text="—"/>
+                                    </Grid>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Grid.Column="0" Style="{StaticResource KvKey}"
+                                                   VerticalAlignment="Center" Text="API KEY"/>
+                                        <TextBlock x:Name="InstallApiKeyValue" Grid.Column="1"
+                                                   Style="{StaticResource KvValue}"
+                                                   TextAlignment="Right"
+                                                   Text="—"/>
+                                    </Grid>
+                                </StackPanel>
+
+                                <TextBlock x:Name="InstallStatus"
+                                           Style="{StaticResource Text.Caption}"
+                                           TextWrapping="Wrap"
+                                           Margin="0,12,0,0"
+                                           Text="Sign in to Claude and agentView first"/>
+                            </StackPanel>
+
+                            <Button Grid.Row="1"
+                                    x:Name="InstallButton"
+                                    Style="{StaticResource Button.Primary}"
+                                    Content="Publish"
+                                    IsEnabled="False"
+                                    HorizontalAlignment="Left"
+                                    Margin="0,20,0,0"
+                                    Click="OnInstallClicked"/>
+                        </Grid>
+                    </Border>
+                </Grid>
+
+                <!-- ── Pair-a-screen card (full width) ──────────── -->
+                <Border Style="{StaticResource Card}" Margin="20,4,20,12">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,16,0">
+                            <TextBlock Style="{StaticResource Text.Section}" Text="Pair a screen"/>
+                            <TextBlock Style="{StaticResource Text.Caption}" Margin="0,2,0,4"
+                                       Text="Optional · bind a physical display to this app"/>
+                            <TextBlock Style="{StaticResource Text.Caption}" Margin="0,0,0,0"
+                                       TextWrapping="Wrap"
+                                       Text="Open the display URL on the physical screen. It shows a 6-character pairing code — enter it here to bind that hardware."/>
+                            <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                                <Ellipse x:Name="PairBullet" Style="{StaticResource StatusBullet.Pending}"/>
+                                <TextBlock x:Name="PairStatus" Margin="6,0,0,0" VerticalAlignment="Center"
+                                           FontSize="{StaticResource FontSize.Caption}"
+                                           Foreground="{StaticResource Brush.TextSecondary}"
+                                           TextWrapping="Wrap"
+                                           Text="6-character code, e.g. ABC123"/>
+                            </StackPanel>
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                            <TextBox x:Name="PairChar0" Style="{StaticResource CodeBox}" TextChanged="OnPairCharChanged"/>
+                            <TextBox x:Name="PairChar1" Style="{StaticResource CodeBox}" TextChanged="OnPairCharChanged"/>
+                            <TextBox x:Name="PairChar2" Style="{StaticResource CodeBox}" TextChanged="OnPairCharChanged"/>
+                            <TextBox x:Name="PairChar3" Style="{StaticResource CodeBox}" TextChanged="OnPairCharChanged"/>
+                            <TextBox x:Name="PairChar4" Style="{StaticResource CodeBox}" TextChanged="OnPairCharChanged"/>
+                            <TextBox x:Name="PairChar5" Style="{StaticResource CodeBox}" TextChanged="OnPairCharChanged"
+                                     Margin="0,0,12,0"/>
+                            <Button x:Name="PairButton"
+                                    Style="{StaticResource Button.Primary}"
+                                    Content="Pair"
+                                    Click="OnPairClicked"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

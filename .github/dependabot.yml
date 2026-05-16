@@ -1,0 +1,30 @@
+# Keep the example's dependencies from rotting into something people
+# copy with known CVEs. Monthly cadence on purpose: this is a small,
+# solo-maintained reference repo — a weekly PR firehose would be noise,
+# but a yearly-stale NuGet/Action would be a real liability.
+
+version: 2
+updates:
+  # NuGet packages of the .NET example application.
+  - package-ecosystem: nuget
+    directory: /applications/token-counter/dotnet
+    schedule:
+      interval: monthly
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "deps"
+    groups:
+      # One PR for all routine bumps; security updates still come
+      # individually so they're easy to triage and merge fast.
+      dotnet-dependencies:
+        applies-to: version-updates
+        patterns: ["*"]
+
+  # The GitHub Actions used by the CI + release workflows.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "ci"

@@ -1,0 +1,37 @@
+{
+  "buckets": [
+    {
+      "key": "five_hour",
+      "label": "5-Hour Limit",
+      "usedPct": 0,
+      "resetIn": null
+    },
+    {
+      "key": "seven_day",
+      "label": "Weekly · all models",
+      "usedPct": 0,
+      "resetIn": null
+    },
+    {
+      "key": "seven_day_opus",
+      "label": "Weekly · Opus",
+      "usedPct": 0,
+      "resetIn": null
+    },
+    {
+      "key": "seven_day_sonnet",
+      "label": "Weekly · Sonnet",
+      "usedPct": 0,
+      "resetIn": null
+    },
+    {
+      "key": "seven_day_design",
+      "label": "Weekly · Claude Design",
+      "usedPct": 0,
+      "resetIn": null
+    }
+  ],
+  "sparkline": null,
+  "status": null,
+  "_comment_for_ai_agent": "Token Counter - single value slot driving the entire display. THIS DEFAULT IS THE 'NO DATA YET' STATE: every usedPct is 0, sparkline and status are null. Bars render empty until your bot writes the first real snapshot. SCHEMA: top-level object with three sections (buckets required, sparkline + status optional). • buckets[]: 1-6 entries. The display renders the FIRST bucket as a large primary bar; the rest stack below in equal-size rows. Each entry needs: key (stable id, kebab-case), label (display string, <=28 chars), usedPct (number 0-100). Optional per bucket: resetIn (pre-formatted countdown string like '1h 22m', '2h 00m', '4d 7h') OR resetIso (ISO-8601 future timestamp - display computes the countdown). resetIn wins if both are set. Set to null when there is no scheduled reset. Bar severity (low/mid/high/crit) is derived from usedPct automatically (<30 low, <60 mid, <80 mid-busy, <95 high, >=95 crit pulsing). The HIGHEST usedPct across all buckets drives the ghost mascot's mood. RECOMMENDED ORDER for AI plan-usage feeds: 5h/session first (most urgent, primary bar), then weekly aggregate, then per-model splits (opus, sonnet), then any per-feature weekly budget (e.g. Claude Design), then paid extra credits last. • sparkline: { label (left annotation), rangeLabel (right annotation, accent colour), points: array of 8-48 numbers (any range, display normalises) }. Set to null to hide the sparkline row entirely. • status: { state (free-form short label like 'focus' / 'idle' / 'working' / 'cooked'), model (free-form like 'claude-opus-4-7', 'gpt-5', or a small annotation like 'extra credits · 23% used') }. Set to null to hide the bottom status line. EXAMPLE WITH REAL DATA: { buckets: [{ key:'five_hour', label:'5-Hour Limit', usedPct:25, resetIn:'2h 00m' }, { key:'seven_day', label:'Weekly · all models', usedPct:68, resetIn:'4d 7h' }, { key:'seven_day_opus', label:'Weekly · Opus', usedPct:12, resetIn:'4d 7h' }, { key:'seven_day_sonnet', label:'Weekly · Sonnet', usedPct:8, resetIn:'4d 7h' }, { key:'seven_day_design', label:'Weekly · Claude Design', usedPct:26, resetIn:'4d 7h' }], sparkline: null, status: null }. UPDATE CADENCE: post every 30-120 seconds while actively working, on bucket-rollover, or on status change. Display polls every 120s so anything faster than that is wasted writes. WHEN TO SKIP A FIELD: set buckets[].resetIn / resetIso to null. Set sparkline / status to null. Never delete the slot - the display would fall back to demo zeros and look unconfigured. EXAMPLE MCP CALL: set_data_slot({ slug: 'token-usage', content: { ... } }) using your scoped credential (see Agent Onboarding tab). The full bot-system prompt and a Claude Code skill are linked there too."
+}

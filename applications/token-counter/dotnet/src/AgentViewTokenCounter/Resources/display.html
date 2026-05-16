@@ -1,0 +1,1541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Token Counter</title>
+
+<!--
+  agentView · Token Counter — Plum Pixel
+  Personal AI-token usage display. Reads ONE value slot, refreshes every 120s.
+
+  ─────────────────────────────────────────────────────────────────────
+  FOR THE AI AGENT READING THIS FILE
+  ─────────────────────────────────────────────────────────────────────
+  This template renders the customer's token usage from a single data
+  slot. Your job (as the agent that writes to it):
+
+    1. Read the schema in the slot's _comment_for_ai_agent — it
+       documents every field.
+    2. Write the slot every 30-120 seconds while the user is actively
+       coding, plus on state change, plus on bucket-rollover.
+    3. Use ONE of (resetIn, resetIso) per bucket. resetIn is a
+       pre-formatted string ("1h 22m", "4d 7h"), resetIso is an
+       ISO-8601 future timestamp the display will count down from.
+       resetIn wins if both are set.
+
+  EXAMPLE MCP CALL (uses the operator's scoped credential — see the
+  Agent Onboarding tab on the display detail page for the full
+  bot-system prompt, Claude Code skill, and .mcp.json snippet):
+
+    set_data_slot({
+      slug: "token-usage",
+      content: {
+        buckets: [
+          { key:"five_hour",        label:"5-Hour Limit",            usedPct: 25, resetIso: "2026-05-15T00:50:00Z" },
+          { key:"seven_day",        label:"Weekly · all models",    usedPct: 68, resetIso: "2026-05-18T03:00:00Z" },
+          { key:"seven_day_opus",   label:"Weekly · Opus",          usedPct: 12, resetIso: "2026-05-18T03:00:00Z" },
+          { key:"seven_day_sonnet", label:"Weekly · Sonnet",        usedPct:  8, resetIso: "2026-05-18T03:00:00Z" },
+          { key:"seven_day_design", label:"Weekly · Claude Design", usedPct: 26, resetIso: "2026-05-18T03:00:00Z" }
+        ],
+        sparkline: null,
+        status: null
+      }
+    })
+
+  The display renders the FIRST bucket as a larger primary bar, the
+  rest stack below. Up to ~6 buckets fit comfortably on a 540x540
+  display; on smaller surfaces the layout compresses gracefully.
+
+  THE GHOST MASCOT ("Synth") reacts to the highest bucket usedPct:
+    <30 cool · <60 focus · <80 busy · <95 hot · >=95 crit (red eyes,
+    fast cycle, alarm emote). You control that mood implicitly through
+    the numbers you write — no separate mood field needed.
+
+  Slot mapping (server substitutes at send-time):
+    {{slot:token-usage.readUrl}} → live JSON URL of the usage slot
+
+  Resilience: the page works without network. INLINE_DEFAULTS below
+  ship every numeric value at 0 — that's the on-purpose "no data
+  delivered yet" state. The bars render empty until your bot writes.
+
+-->
+
+<style>
+:root {
+  --bg: #1A1320;
+  --border: #3A2A45;
+  --accent-1: #B8478C;
+  --accent-2: #C9D667;
+  --text: #F4EFE6;
+  --muted: #8B7A92;
+  --bar-bg: #1F1626;
+  --bar-low: #6BC9A4;
+  --bar-mid: #E8C547;
+  --bar-high: #D85A6B;
+  --bar-crit: #FF3D5A;
+  --synth: #7DD6FF;
+  --synth-dark: #2F5A75;
+
+  --pad: clamp(8px, 2.4vmin, 20px);
+  --gap: clamp(6px, 2vmin, 14px);
+  --fs-value: clamp(22px, 6.2vmin, 44px);
+  --fs-value-primary: clamp(34px, 9.5vmin, 64px);
+  --fs-label: clamp(13px, 3.4vmin, 24px);
+  --fs-label-primary: clamp(16px, 4.3vmin, 30px);
+  --fs-reset: clamp(11px, 2.7vmin, 19px);
+  --fs-status: clamp(13px, 3vmin, 22px);
+  --fs-spark: clamp(11px, 2.5vmin, 18px);
+  --fs-time: clamp(20px, 5vmin, 38px);
+  --fs-date: clamp(11px, 2.7vmin, 18px);
+  --bar-h: clamp(10px, 2.6vmin, 20px);
+  --bar-h-primary: clamp(16px, 4vmin, 30px);
+  --mascot: clamp(30px, 7vmin, 58px);
+
+  --synth-glow: rgba(125, 214, 255, 0.35);
+  --synth-cycle: 22s;
+
+  --font-serif: 'Crimson Pro', Georgia, 'Iowan Old Style', 'Times New Roman', serif;
+  --font-pixel: 'VT323', ui-monospace, 'Courier New', monospace;
+  --font-mono:  'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+}
+
+body[data-mood="cool"] {
+  --synth-glow: rgba(255, 125, 200, 0.45);
+  --synth-cycle: 26s;
+}
+body[data-mood="busy"] {
+  --synth-glow: rgba(201, 214, 103, 0.5);
+  --synth-cycle: 19s;
+}
+body[data-mood="hot"] {
+  --synth-glow: rgba(232, 157, 94, 0.6);
+  --synth-cycle: 15s;
+}
+body[data-mood="crit"] {
+  --synth-glow: rgba(255, 61, 90, 0.75);
+  --synth-cycle: 11s;
+}
+
+body[data-mood="crit"] .eye-white { fill: #FF3D5A; }
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100%; height: 100%; overflow: hidden; }
+
+body {
+  font-family: var(--font-pixel);
+  background: var(--bg);
+  color: var(--text);
+  padding: var(--pad);
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+  position: relative;
+}
+
+body::before {
+  /* Two radial gradients form a subtle plum / cyan halo. The scanline
+     repeating-linear-gradient that used to live here was beautiful on
+     a fast GPU but cost a full-screen rasterisation pass on every
+     compositor invalidation — too much for older Chrome with weak
+     integrated graphics. Dropped. */
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 18% 24%, rgba(184, 71, 140, 0.10), transparent 45%),
+    radial-gradient(circle at 82% 76%, rgba(125, 214, 255, 0.06), transparent 45%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Lift every direct child of body above the radial-gradient ::before
+   underlay. We exclude .walker on purpose: the mascot has its own
+   `position: absolute` rule and needs the body box as its containing
+   block so left/bottom percentages anchor to the screen edges, not
+   to the walker's natural flow position inside the flex column. Z-
+   index 2 keeps it above content cards. */
+body > *:not(.walker) { position: relative; z-index: 1; }
+.walker { z-index: 2; }
+
+/* ============================================================
+   Clock + brand row
+   ============================================================ */
+.clock-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  flex-shrink: 0;
+  padding-bottom: clamp(2px, 0.8vmin, 6px);
+  border-bottom: 1px dashed var(--border);
+  gap: clamp(8px, 2vmin, 16px);
+}
+
+.time {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: var(--fs-time);
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  letter-spacing: 0.01em;
+  flex-shrink: 0;
+}
+
+.time-sep {
+  color: var(--accent-2);
+  margin: 0 0.05em;
+}
+
+.date {
+  font-family: var(--font-pixel);
+  font-size: var(--fs-date);
+  color: var(--muted);
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* ============================================================
+   Synth: KI-Buddy with playful, randomized behaviors
+   ============================================================ */
+.walker {
+  /* Performance: we used to drive position with left/bottom %, which
+     triggers a full layout reflow per animation frame. On weaker
+     GPUs / older Chrome that visibly stutters during long walks.
+     Now we anchor the walker at the body's top-left corner and move
+     it with `transform: translate3d`, which the compositor handles
+     entirely on its own layer (no layout, no paint of the body —
+     just a GPU re-blit). The JS in the behaviour loop computes
+     pixel offsets from the body's current size.
+
+     `will-change: transform` promises the browser we'll animate
+     transform repeatedly, so it pre-allocates the compositor layer
+     and avoids the first-frame jank.
+
+     `filter: drop-shadow` was a continuous per-pixel raster filter
+     on a moving element — that's removed. The mood-driven glow now
+     comes from a static box-shadow on the mascot SVG itself (much
+     cheaper) or visual cues like cycle speed + emote bubble. */
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 2;
+  pointer-events: none;
+  transform: translate3d(0, 0, 0);
+  transition: transform 0.4s ease, opacity 0.6s ease;
+  will-change: transform;
+}
+
+.walker.action-vanish { opacity: 0; }
+
+/* The facing wrapper holds the horizontal flip so the walker's
+   translate transition can interpolate cleanly without being mixed
+   with a scaleX flip. Quick 0.25s transition makes the turn feel
+   snappy without "popping". */
+.walker-facing {
+  display: block;
+  transform: scaleX(1);
+  transition: transform 0.25s ease;
+  transform-origin: 50% 50%;
+}
+
+.jumper { display: block; }
+
+.bobber {
+  display: block;
+  animation:
+    synth-bob 1.9s infinite ease-in-out,
+    synth-flicker 5.5s infinite ease-in-out;
+}
+
+@keyframes synth-flicker {
+  0%, 100% { opacity: 1; }
+  18% { opacity: 0.82; }
+  35% { opacity: 0.95; }
+  55% { opacity: 0.7; }
+  72% { opacity: 0.92; }
+  88% { opacity: 0.85; }
+}
+
+.mascot {
+  width: var(--mascot);
+  height: auto;
+  display: block;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+@keyframes synth-bob {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-8%); }
+}
+
+.walker.action-jump    .jumper { animation: action-big-jump 0.9s ease-out; }
+.walker.action-hop     .jumper { animation: action-hop 0.5s ease-out; }
+.walker.action-dance   .jumper { animation: action-dance 2s ease-in-out; }
+.walker.action-spin    .jumper { animation: action-spin 0.7s ease-in-out; }
+.walker.action-stretch .jumper { animation: action-stretch 0.7s ease-out; }
+.walker.action-groom   .jumper { animation: action-groom 1.6s ease-in-out; }
+.walker.action-wobble  .jumper { animation: action-wobble 1.2s ease-in-out; }
+.walker.action-shudder .jumper { animation: action-shudder 0.5s linear; }
+
+.walker.action-sleep .jumper {
+  transform: translateY(4%) scaleY(0.96);
+  transition: transform 0.5s ease;
+}
+.walker.action-sleep .mascot-eye--left,
+.walker.action-sleep .mascot-eye--right { animation: none; transform: scaleY(0.06); }
+.walker.action-sleep .mascot-antenna { opacity: 0.22; }
+.walker.action-sleep .zzz      { animation: zzz-rise 2.4s ease-out infinite; }
+.walker.action-sleep .zzz--alt { animation: zzz-rise 2.4s ease-out 0.6s infinite; }
+
+@keyframes action-big-jump {
+  0%   { transform: translateY(0) scaleY(1); }
+  10%  { transform: translateY(0) scaleY(0.78); }
+  40%  { transform: translateY(-95%) scaleY(1.15); }
+  70%  { transform: translateY(0) scaleY(0.83); }
+  100% { transform: translateY(0) scaleY(1); }
+}
+
+@keyframes action-hop {
+  0%   { transform: translateY(0) scaleY(1); }
+  15%  { transform: translateY(0) scaleY(0.85); }
+  50%  { transform: translateY(-38%) scaleY(1.08); }
+  85%  { transform: translateY(0) scaleY(0.88); }
+  100% { transform: translateY(0) scaleY(1); }
+}
+
+@keyframes action-dance {
+  0%   { transform: translate(0, 0) scaleY(1); }
+  12%  { transform: translate(-10%, -22%) scaleY(1.05); }
+  25%  { transform: translate(10%, 0) scaleY(0.9); }
+  38%  { transform: translate(-10%, -22%) scaleY(1.05); }
+  50%  { transform: translate(10%, 0) scaleY(0.9); }
+  63%  { transform: translate(-8%, -20%) scaleY(1.05); }
+  75%  { transform: translate(8%, 0) scaleY(0.9); }
+  88%  { transform: translate(0, -12%) scaleY(1.05); }
+  100% { transform: translate(0, 0) scaleY(1); }
+}
+
+@keyframes action-spin {
+  0%   { transform: rotate(0); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes action-stretch {
+  0%   { transform: translateY(0) scaleY(1); }
+  50%  { transform: translateY(-22%) scaleY(1.18); }
+  100% { transform: translateY(0) scaleY(1); }
+}
+
+@keyframes action-groom {
+  0%, 100% { transform: rotate(0); }
+  18%      { transform: rotate(-14deg); }
+  35%      { transform: rotate(10deg); }
+  52%      { transform: rotate(-12deg); }
+  70%      { transform: rotate(8deg); }
+  85%      { transform: rotate(-4deg); }
+}
+
+@keyframes action-wobble {
+  0%, 100% { transform: rotate(0) translateY(0); }
+  25%      { transform: rotate(-6deg) translateY(-4%); }
+  50%      { transform: rotate(0) translateY(0); }
+  75%      { transform: rotate(6deg) translateY(-4%); }
+}
+
+@keyframes action-shudder {
+  0%, 100% { transform: translate(0, 0); }
+  10%      { transform: translate(-2%, 1%); }
+  25%      { transform: translate(2%, -1%); }
+  40%      { transform: translate(-1%, -1%); }
+  55%      { transform: translate(2%, 1%); }
+  70%      { transform: translate(-2%, 0); }
+  85%      { transform: translate(1%, -1%); }
+}
+
+@keyframes zzz-rise {
+  0%   { opacity: 0; transform: translateY(0) scale(0.7); }
+  15%  { opacity: 0.95; transform: translateY(-10%) scale(1); }
+  85%  { opacity: 0.6; transform: translateY(-80%) scale(0.9); }
+  100% { opacity: 0; transform: translateY(-110%) scale(0.7); }
+}
+
+.zzz {
+  position: absolute;
+  top: -25%;
+  left: 65%;
+  font-family: var(--font-pixel);
+  font-size: 55%;
+  font-weight: bold;
+  color: var(--accent-2);
+  opacity: 0;
+  pointer-events: none;
+  text-shadow: 0 0 6px rgba(201, 214, 103, 0.6);
+}
+
+.zzz--alt {
+  top: -8%;
+  left: 78%;
+  font-size: 38%;
+}
+
+.mascot-eye--left, .mascot-eye--right {
+  transform-origin: 50% 50%;
+  transform-box: fill-box;
+  animation: eye-blink 5s infinite linear;
+}
+
+.eye-white { transition: fill 1.2s ease; }
+
+@keyframes eye-blink {
+  0%, 96%, 100% { transform: scaleY(1); }
+  97.5%         { transform: scaleY(0.08); }
+  98%           { transform: scaleY(0.08); }
+  99%           { transform: scaleY(1); }
+}
+
+.mascot-antenna {
+  animation: antenna-pulse 1.6s ease-in-out infinite;
+  transition: opacity 0.5s ease;
+}
+
+@keyframes antenna-pulse {
+  0%, 100% { fill: #6FA02A; }
+  50%      { fill: #C9D667; }
+}
+
+.eye-pupil {
+  animation: look-around 6s ease-in-out infinite;
+}
+
+@keyframes look-around {
+  0%, 100% { transform: translateX(0); }
+  25%      { transform: translateX(0.5px); }
+  50%      { transform: translateX(0); }
+  75%      { transform: translateX(-0.5px); }
+}
+
+.emote {
+  position: absolute;
+  top: -28%;
+  left: 50%;
+  font-family: var(--font-pixel);
+  font-size: 60%;
+  font-weight: bold;
+  pointer-events: none;
+  opacity: 0;
+  text-shadow: 0 0 6px currentColor;
+  animation: emote-bubble 4s infinite ease-out;
+}
+
+.emote::before { content: ''; }
+
+body[data-mood="focus"] .emote { display: none; }
+body[data-mood="cool"]  .emote { color: #FF7DC9; }
+body[data-mood="cool"]  .emote::before { content: '\2665'; }
+body[data-mood="busy"]  .emote { color: #C9D667; font-size: 55%; }
+body[data-mood="busy"]  .emote::before { content: '*'; }
+body[data-mood="hot"]   .emote { color: #FFE66D; }
+body[data-mood="hot"]   .emote::before { content: '~'; }
+body[data-mood="crit"]  .emote { color: #FF3D5A; font-size: 90%; }
+body[data-mood="crit"]  .emote::before { content: '!'; }
+
+@keyframes emote-bubble {
+  0%, 6%   { opacity: 0; transform: translate(-50%, 20%) scale(0.4); }
+  16%      { opacity: 1; transform: translate(-50%, -10%) scale(1.15); }
+  28%      { opacity: 1; transform: translate(-50%, -25%) scale(1); }
+  60%      { opacity: 1; transform: translate(-50%, -45%) scale(1); }
+  78%      { opacity: 0; transform: translate(-50%, -65%) scale(0.8); }
+  100%     { opacity: 0; transform: translate(-50%, 20%) scale(0.4); }
+}
+
+/* ============================================================
+   Buckets (the three bars)
+   ============================================================ */
+.buckets {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+  gap: var(--gap);
+  min-height: 0;
+}
+
+.bucket {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  grid-template-rows: auto auto;
+  gap: clamp(4px, 1vmin, 8px) clamp(8px, 2vmin, 14px);
+  align-items: baseline;
+}
+
+.bucket-value {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: var(--fs-value);
+  line-height: 1;
+  grid-row: 1; grid-column: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.bucket-label {
+  font-family: var(--font-pixel);
+  font-size: var(--fs-label);
+  letter-spacing: 0.04em;
+  grid-row: 1; grid-column: 2;
+  align-self: end;
+  /* Keep all bars on a single visual line even when the label is
+     long ("Weekly · Claude Design"). Tail-truncate with ellipsis
+     instead of wrapping — wraps would un-align the bar heights and
+     break the at-a-glance scan. */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.bucket-reset {
+  font-family: var(--font-pixel);
+  font-size: var(--fs-reset);
+  color: var(--muted);
+  letter-spacing: 0.05em;
+  grid-row: 1; grid-column: 3;
+  align-self: end;
+  white-space: nowrap;
+}
+
+.bar {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  height: var(--bar-h);
+  background: var(--bar-bg);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  width: 0;
+  /* CSS transition for smooth value-to-value updates. The shimmer
+     gradient animation was removed — animating background-position
+     on a non-composited surface forced a full raster invalidation
+     every frame and was the single biggest GPU hog on weak devices.
+     A flat colour reads almost identical at the bar's small height. */
+  transition: width 1.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.bar-fill--low  { background-color: var(--bar-low); }
+.bar-fill--mid  { background-color: var(--bar-mid); }
+.bar-fill--high { background-color: var(--bar-high); }
+.bar-fill--crit {
+  background-color: var(--bar-crit);
+  /* Critical state keeps the pulse — that one is communicative, not
+     decorative. box-shadow on a tiny stretched element is cheap. */
+  animation: pulse-crit 0.9s 1.8s infinite;
+}
+@keyframes pulse-crit {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255, 61, 90, 0.6); }
+  50%      { box-shadow: 0 0 12px 2px rgba(255, 61, 90, 0.4); }
+}
+
+.bucket--primary .bucket-value { font-size: var(--fs-value-primary); }
+.bucket--primary .bucket-label { font-size: var(--fs-label-primary); }
+.bucket--primary .bar { height: var(--bar-h-primary); }
+
+/* ============================================================
+   Sparkline
+   ============================================================ */
+.sparkline-wrap {
+  display: flex;
+  align-items: center;
+  gap: clamp(8px, 2vmin, 14px);
+}
+
+.sparkline {
+  flex-grow: 1;
+  height: clamp(20px, 5vmin, 38px);
+  display: block;
+}
+
+.sparkline-label {
+  font-family: var(--font-pixel);
+  font-size: var(--fs-spark);
+  color: var(--muted);
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.sparkline-label--right { color: var(--accent-2); }
+
+.spark-line {
+  fill: none;
+  stroke: var(--accent-1);
+  stroke-width: 1.5;
+  stroke-linecap: square;
+  stroke-linejoin: miter;
+  stroke-dasharray: 600;
+  stroke-dashoffset: 600;
+  animation: draw 1.8s 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.spark-area {
+  fill: url(#spark-grad);
+  opacity: 0;
+  animation: fade-in 0.9s 2.2s forwards;
+}
+
+.spark-dot {
+  fill: var(--accent-2);
+  opacity: 0;
+  transform-origin: center;
+  transform-box: fill-box;
+  animation: fade-in 0.4s 2.6s forwards, dot-pulse 1.6s 3s infinite;
+}
+
+@keyframes draw    { to { stroke-dashoffset: 0; } }
+@keyframes fade-in { to { opacity: 1; } }
+@keyframes dot-pulse {
+  0%, 100% { transform: scale(1);   filter: drop-shadow(0 0 0 transparent); }
+  50%      { transform: scale(1.5); filter: drop-shadow(0 0 4px var(--accent-2)); }
+}
+
+/* ============================================================
+   Status (footer)
+   ============================================================ */
+.status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-top: clamp(4px, 1.5vmin, 10px);
+  border-top: 1px dashed var(--border);
+  font-family: var(--font-pixel);
+  font-size: var(--fs-status);
+  letter-spacing: 0.04em;
+}
+
+.cursor {
+  color: var(--accent-2);
+  animation: blink 1.1s infinite step-end;
+}
+
+@keyframes blink {
+  0%, 50%   { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+.status-state { color: var(--accent-2); text-transform: lowercase; }
+.status-sep   { color: var(--muted); margin: 0 2px; }
+
+@media (max-width: 360px), (max-height: 360px) {
+  .sparkline-wrap { display: none; }
+  .brand          { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  /* Walker positioning is transform-only; the implicit
+     transition-duration: 0.01ms above snaps it to its target every
+     time. No further override needed. */
+  /* width is now applied inline by the renderer, so no width override
+     is needed here — the transition-duration override above collapses
+     the animation to "snap" behaviour and the inline value sticks. */
+  .spark-line { stroke-dashoffset: 0 !important; }
+  .spark-area, .spark-dot { opacity: 1 !important; }
+}
+</style>
+</head>
+<body>
+
+  <div class="clock-row">
+    <span class="time">
+      <span class="time-h">--</span><span class="time-sep">:</span><span class="time-m">--</span>
+    </span>
+    <span class="date" id="date-out">---</span>
+  </div>
+
+  <section class="buckets" id="buckets"></section>
+
+  <div class="sparkline-wrap" id="sparkline-wrap">
+    <span class="sparkline-label" id="spark-label-left">Tokens / hour</span>
+    <svg class="sparkline" id="sparkline" viewBox="0 0 240 32" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <defs>
+        <linearGradient id="spark-grad" x1="0" x2="0" y1="0" y2="1">
+          <stop offset="0%"   stop-color="#B8478C" stop-opacity="0.45"/>
+          <stop offset="100%" stop-color="#B8478C" stop-opacity="0"/>
+        </linearGradient>
+      </defs>
+      <polyline class="spark-area" id="spark-area" points=""/>
+      <polyline class="spark-line" id="spark-line" points=""/>
+      <circle   class="spark-dot"  id="spark-dot" cx="0" cy="0" r="2.5"/>
+    </svg>
+    <span class="sparkline-label sparkline-label--right" id="spark-label-right">past 24h</span>
+  </div>
+
+  <footer class="status" id="status-row">
+    <span class="cursor">&#9656;</span>
+    <span class="status-state" id="status-state">focus</span>
+    <span class="status-sep">&middot;</span>
+    <span class="status-state" id="status-model">claude-opus-4-7</span>
+  </footer>
+
+  <!-- Synth: KI-Buddy with walk, jump, sleep, dance routine.
+       Structure note: .walker handles translation only (long
+       transitions for moving around). The new .walker-facing wrapper
+       handles the horizontal flip with its own short transition.
+       Splitting these two avoids a Chrome 2022 / older-Chromium
+       quirk where transitioning a combined `translate3d(...) scaleX(±1)`
+       value interpolates the scaleX linearly through 0, briefly
+       collapsing the walker to zero width in the middle of a walk
+       and making the user perceive a "teleport" instead of a walk. -->
+  <div class="walker" aria-hidden="true">
+    <div class="walker-facing">
+    <span class="emote"></span>
+    <span class="zzz">z</span>
+    <span class="zzz zzz--alt">z</span>
+    <div class="jumper"><div class="bobber">
+    <svg class="mascot" viewBox="0 0 16 14" xmlns="http://www.w3.org/2000/svg">
+      <g shape-rendering="crispEdges">
+        <rect class="mascot-antenna" x="8" y="0" width="1" height="1" fill="#C9D667"/>
+        <rect x="8" y="1" width="1" height="1" fill="#2F5A75"/>
+        <rect x="5" y="2"  width="6" height="1" fill="#2F5A75"/>
+        <rect x="3" y="3"  width="2" height="1" fill="#2F5A75"/>
+        <rect x="11" y="3" width="2" height="1" fill="#2F5A75"/>
+        <rect x="2" y="4"  width="1" height="1" fill="#2F5A75"/>
+        <rect x="13" y="4" width="1" height="1" fill="#2F5A75"/>
+        <rect x="1" y="5"  width="1" height="1" fill="#2F5A75"/>
+        <rect x="14" y="5" width="1" height="1" fill="#2F5A75"/>
+        <rect x="1" y="6"  width="1" height="6" fill="#2F5A75"/>
+        <rect x="14" y="6" width="1" height="6" fill="#2F5A75"/>
+        <rect x="5" y="3"  width="6"  height="1" fill="#7DD6FF"/>
+        <rect x="4" y="4"  width="8"  height="1" fill="#7DD6FF"/>
+        <rect x="3" y="5"  width="10" height="1" fill="#7DD6FF"/>
+        <rect x="2" y="6"  width="12" height="6" fill="#7DD6FF"/>
+        <rect x="3" y="5" width="1" height="1" fill="#B5EBFF"/>
+        <rect x="2" y="6" width="1" height="1" fill="#B5EBFF"/>
+        <rect x="3" y="6" width="1" height="1" fill="#B5EBFF"/>
+        <g class="mascot-eye--left">
+          <rect class="eye-white" x="3" y="6" width="3" height="3" fill="#F4EFE6"/>
+          <rect class="eye-pupil" x="4" y="7" width="1" height="1" fill="#1A1320"/>
+        </g>
+        <g class="mascot-eye--right">
+          <rect class="eye-white" x="10" y="6" width="3" height="3" fill="#F4EFE6"/>
+          <rect class="eye-pupil" x="11" y="7" width="1" height="1" fill="#1A1320"/>
+        </g>
+        <rect x="7" y="10" width="2" height="1" fill="#2F5A75"/>
+        <rect x="6" y="9"  width="1" height="1" fill="#2F5A75"/>
+        <rect x="9" y="9"  width="1" height="1" fill="#2F5A75"/>
+        <rect x="2" y="12" width="3" height="1" fill="#7DD6FF"/>
+        <rect x="2" y="13" width="3" height="1" fill="#2F5A75"/>
+        <rect x="5" y="12" width="1" height="1" fill="#2F5A75"/>
+        <rect x="6" y="12" width="4" height="1" fill="#7DD6FF"/>
+        <rect x="6" y="13" width="4" height="1" fill="#2F5A75"/>
+        <rect x="10" y="12" width="1" height="1" fill="#2F5A75"/>
+        <rect x="11" y="12" width="3" height="1" fill="#7DD6FF"/>
+        <rect x="11" y="13" width="3" height="1" fill="#2F5A75"/>
+      </g>
+    </svg>
+    </div></div>
+    </div><!-- /.walker-facing -->
+  </div>
+
+  <script>
+    /* ─── INLINE_DEFAULTS — must mirror data/*.default.json byte-equivalent ─── */
+    var USAGE_DEFAULT = {
+      buckets: [
+        { key: "five_hour",        label: "5-Hour Limit",            usedPct: 0, resetIn: null },
+        { key: "seven_day",        label: "Weekly · all models",    usedPct: 0, resetIn: null },
+        { key: "seven_day_opus",   label: "Weekly · Opus",          usedPct: 0, resetIn: null },
+        { key: "seven_day_sonnet", label: "Weekly · Sonnet",        usedPct: 0, resetIn: null },
+        { key: "seven_day_design", label: "Weekly · Claude Design", usedPct: 0, resetIn: null }
+      ],
+      sparkline: null,
+      status: null
+    };
+
+    /* ─── Slot URL (server substitutes at send-time) ─── */
+    var USAGE_URL = "{{slot:token-usage.readUrl}}";
+
+    var looksLikeUrl = function (v) { return typeof v === "string" && /^https?:\/\//i.test(v); };
+
+    function fetchOrFallback (url, fallback) {
+      if (!looksLikeUrl(url)) return Promise.resolve(fallback);
+      return fetch(url, { cache: "no-store" })
+        .then(function (res) { return res.ok ? res.json() : fallback; })
+        .then(function (data) {
+          if (data == null || typeof data !== "object") return fallback;
+          return Object.assign({}, fallback, data);
+        })
+        .catch(function () { return fallback; });
+    }
+
+    /* ─── Severity + mood from highest usedPct ─── */
+    function severityFor (pct) {
+      if (pct >= 95) return "crit";
+      if (pct >= 80) return "high";
+      if (pct >= 30) return "mid";
+      return "low";
+    }
+
+    function moodFor (pct) {
+      if (pct >= 95) return "crit";
+      if (pct >= 80) return "hot";
+      if (pct >= 60) return "busy";
+      if (pct <= 30) return "cool";
+      return "focus";
+    }
+
+    /* ─── Format helpers ─── */
+    function formatResetCountdown (resetIn, resetIso) {
+      if (typeof resetIn === "string" && resetIn.length > 0) return "Reset in " + resetIn;
+      if (typeof resetIso !== "string") return "";
+      var target = Date.parse(resetIso);
+      if (isNaN(target)) return "";
+      var diffMs = target - Date.now();
+      if (diffMs <= 0) return "Resetting now";
+      var minutes = Math.floor(diffMs / 60000);
+      var hours = Math.floor(minutes / 60);
+      var days = Math.floor(hours / 24);
+      if (days >= 1) return "Reset in " + days + "d " + (hours - days * 24) + "h";
+      if (hours >= 1) return "Reset in " + hours + "h " + String(minutes - hours * 60).padStart(2, "0") + "m";
+      return "Reset in 0h " + String(minutes).padStart(2, "0") + "m";
+    }
+
+    function escapeHtml (s) {
+      return String(s == null ? "" : s)
+        .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+    }
+
+    /* ─── Render buckets ─────────────────────────────────────────
+       Two paths:
+         1. STRUCTURE CHANGED (first render, or bucket keys differ)
+            → rebuild the inner HTML completely. The bar-fill starts
+              at width 0 (per the CSS default) and the next-frame width
+              assignment kicks the transition into action, so the bars
+              creep up from 0 to their target — the classic on-load
+              animation.
+         2. SAME KEYS IN SAME ORDER (the steady-state poll case)
+            → patch the existing nodes in place: update label, %, reset
+              caption, severity class, and bar-fill width. The browser's
+              CSS transition handles the smooth value-to-value glide.
+              No DOM rebuild = no animation restart, no flicker.
+
+       The structure signature is just the joined keys; that is enough
+       because the bridge's BucketMapper produces a stable order.       */
+    var _previousBucketKeys = "";
+
+    function renderBuckets (buckets) {
+      var container = document.getElementById("buckets");
+      if (!Array.isArray(buckets) || buckets.length === 0) {
+        container.innerHTML = "";
+        _previousBucketKeys = "";
+        return;
+      }
+
+      var maxPct = 0;
+      var keys   = [];
+      for (var i = 0; i < buckets.length; i++) {
+        var p = Number(buckets[i].usedPct) || 0;
+        if (p > maxPct) maxPct = p;
+        keys.push(buckets[i].key || ("idx" + i));
+      }
+      document.body.dataset.mood = moodFor(maxPct);
+
+      var structureSig = keys.join("|");
+      var sameStructure = (structureSig === _previousBucketKeys);
+
+      if (!sameStructure) {
+        // Path 1: full rebuild. The bar-fill width is set INLINE in
+        // the HTML so the very first paint shows the bars at their
+        // real value — no requestAnimationFrame dance, no race with
+        // the browser's layout coalescing that left bars stuck at 0.
+        var html = "";
+        for (var j = 0; j < buckets.length; j++) {
+          var b = buckets[j];
+          var pct = Math.max(0, Math.min(100, Number(b.usedPct) || 0));
+          var sev = severityFor(pct);
+          var resetText = formatResetCountdown(b.resetIn, b.resetIso);
+          var primary = (j === 0) ? " bucket--primary" : "";
+          html +=
+            '<div class="bucket' + primary + '" data-key="' + escapeHtml(b.key || "") + '">' +
+              '<span class="bucket-value">' + Math.round(pct) + '%</span>' +
+              '<span class="bucket-label">' + escapeHtml(b.label || b.key || "") + '</span>' +
+              '<span class="bucket-reset">' + escapeHtml(resetText) + '</span>' +
+              '<div class="bar"><div class="bar-fill bar-fill--' + sev + '" style="width:' + pct + '%"></div></div>' +
+            '</div>';
+        }
+        container.innerHTML = html;
+        _previousBucketKeys = structureSig;
+        return;
+      }
+
+      // Path 2: in-place patch. Same buckets, new values — let the
+      // CSS transition slide each bar from its current width to the
+      // new one. No DOM churn.
+      for (var m = 0; m < buckets.length; m++) {
+        var bm = buckets[m];
+        var pctM = Math.max(0, Math.min(100, Number(bm.usedPct) || 0));
+        var sevM = severityFor(pctM);
+        var resetTextM = formatResetCountdown(bm.resetIn, bm.resetIso);
+
+        var node = container.children[m];
+        if (!node) continue;
+        var valueEl = node.querySelector('.bucket-value');
+        var labelEl = node.querySelector('.bucket-label');
+        var resetEl = node.querySelector('.bucket-reset');
+        var fillEl  = node.querySelector('.bar-fill');
+        if (valueEl) valueEl.textContent = Math.round(pctM) + '%';
+        if (labelEl) labelEl.textContent = bm.label || bm.key || '';
+        if (resetEl) resetEl.textContent = resetTextM;
+        if (fillEl) {
+          fillEl.className = 'bar-fill bar-fill--' + sevM;
+          fillEl.style.width = pctM + '%';
+        }
+      }
+    }
+
+    /* ─── Render sparkline ─── */
+    function renderSparkline (spark) {
+      var wrap = document.getElementById("sparkline-wrap");
+      if (!spark || !Array.isArray(spark.points) || spark.points.length < 2) {
+        wrap.style.display = "none";
+        return;
+      }
+      wrap.style.display = "";
+
+      document.getElementById("spark-label-left").textContent  = spark.label      || "";
+      document.getElementById("spark-label-right").textContent = spark.rangeLabel || "";
+
+      var pts = spark.points.map(Number).filter(function (n) { return !isNaN(n); });
+      if (pts.length < 2) { wrap.style.display = "none"; return; }
+
+      var maxV = Math.max.apply(null, pts);
+      var minV = Math.min.apply(null, pts);
+      var range = Math.max(1, maxV - minV);
+      var W = 240, H = 32;
+
+      var linePoints = "";
+      var areaPoints = "0," + H + " ";
+      for (var i = 0; i < pts.length; i++) {
+        var x = (i / (pts.length - 1)) * W;
+        var y = H - 2 - ((pts[i] - minV) / range) * (H - 6);
+        linePoints += x.toFixed(1) + "," + y.toFixed(1) + " ";
+        areaPoints += x.toFixed(1) + "," + y.toFixed(1) + " ";
+      }
+      areaPoints += W + "," + H;
+
+      document.getElementById("spark-line").setAttribute("points", linePoints.trim());
+      document.getElementById("spark-area").setAttribute("points", areaPoints);
+      var lastX = W;
+      var lastY = H - 2 - ((pts[pts.length - 1] - minV) / range) * (H - 6);
+      var dot = document.getElementById("spark-dot");
+      dot.setAttribute("cx", String(lastX));
+      dot.setAttribute("cy", lastY.toFixed(1));
+    }
+
+    /* ─── Render status ─── */
+    function renderStatus (status) {
+      var row = document.getElementById("status-row");
+      if (!status) { row.style.display = "none"; return; }
+      row.style.display = "";
+      document.getElementById("status-state").textContent = String(status.state || "");
+      document.getElementById("status-model").textContent = String(status.model || "");
+    }
+
+    /* ─── Poll loop ─── */
+    function reload () {
+      fetchOrFallback(USAGE_URL, USAGE_DEFAULT).then(function (data) {
+        renderBuckets(data.buckets || USAGE_DEFAULT.buckets);
+        renderSparkline(data.sparkline);
+        renderStatus(data.status);
+      }).catch(function () {
+        renderBuckets(USAGE_DEFAULT.buckets);
+        renderSparkline(USAGE_DEFAULT.sparkline);
+        renderStatus(USAGE_DEFAULT.status);
+      });
+    }
+
+    reload();
+    setInterval(reload, 120000);
+  </script>
+
+  <script>
+    /* ─── Live clock + date ─── */
+    (function () {
+      var days   = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+      var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      var hEl = document.querySelector('.time-h');
+      var mEl = document.querySelector('.time-m');
+      var dEl = document.getElementById('date-out');
+
+      function tick () {
+        var now = new Date();
+        hEl.textContent = String(now.getHours()).padStart(2, '0');
+        mEl.textContent = String(now.getMinutes()).padStart(2, '0');
+        dEl.textContent = days[now.getDay()] + ', ' + now.getDate() + ' ' + months[now.getMonth()] + ' ' + now.getFullYear();
+      }
+      tick();
+      setInterval(tick, 15000);
+    })();
+  </script>
+
+  <script>
+    /* ─── Synth behavior loop — randomized actions, ghost-like drift ───
+       Position is stored as "viewport percentages" (0-100) for both
+       axes. Every time we want to apply a position, we convert to
+       pixel offsets and write a single `transform: translate3d(...)`
+       to the walker — which the browser composites on a dedicated
+       GPU layer (no layout reflow, no body repaint). Compared to the
+       previous left/bottom-percent approach this is roughly an order
+       of magnitude cheaper on weak GPUs / older Chrome.
+
+       We re-sample the body's pixel dimensions on every applyPos()
+       call rather than caching them, so a window resize Just Works
+       without a separate listener. */
+    (function init () {
+      var walker = document.querySelector('.walker');
+      if (!walker) { setTimeout(init, 50); return; }
+      var walkerFacing = walker.querySelector('.walker-facing');
+
+      var pos = 12;
+      var posY = 4;
+      var facing = 1;
+
+      function rand (min, max) { return Math.random() * (max - min) + min; }
+      function pick (arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+      function sleepDuration () {
+        if (Math.random() < 0.2) return rand(8000, 12000);
+        return rand(2000, 4000);
+      }
+
+      function pickY () {
+        if (Math.random() < 0.55) return rand(2, 25);
+        if (Math.random() < 0.75) return rand(25, 55);
+        return rand(55, 82);
+      }
+
+      function applyPos (xPct, yPct) {
+        // bottom-anchored: yPct=0 = at the body's bottom edge,
+        // yPct=82 = 82% up from the bottom. Mirrors the legacy
+        // `bottom: X%` semantics so action callers don't care.
+        var bodyW = document.body.clientWidth  || window.innerWidth;
+        var bodyH = document.body.clientHeight || window.innerHeight;
+        var pxX = (xPct / 100) * bodyW;
+        var pxY = bodyH - (yPct / 100) * bodyH;
+        pxY -= walker.offsetHeight || 0;
+        walker.style.transform =
+          'translate3d(' + pxX.toFixed(1) + 'px, ' + pxY.toFixed(1) + 'px, 0)';
+      }
+
+      function applyFacing (faceDir) {
+        // Separate element from walker so the flip animates with its
+        // own short transition, decoupled from the long walk
+        // transition on the parent walker's translate.
+        if (walkerFacing) {
+          walkerFacing.style.transform = 'scaleX(' + faceDir + ')';
+        }
+      }
+
+      function applyTransform (xPct, yPct, faceDir) {
+        applyPos(xPct, yPct);
+        applyFacing(faceDir);
+      }
+
+      // Place the walker in its starting pose right away so the very
+      // first paint already shows it at the correct spot — no flash
+      // at (0, 0) before the first walkTo fires.
+      applyTransform(pos, posY, facing);
+
+      function walkTo (targetX, targetY, done) {
+        if (targetY == null) targetY = posY;
+        var distX = Math.abs(targetX - pos);
+        var distY = Math.abs(targetY - posY);
+        var dist = Math.max(distX, distY * 0.8);
+        var dur = Math.max(1800, Math.round(dist * rand(130, 190)));
+        var newFacing = (targetX >= pos) ? 1 : -1;
+        walker.style.transition = 'transform ' + dur + 'ms linear, opacity 0.6s ease';
+        applyTransform(targetX, targetY, newFacing);
+        pos = targetX;
+        posY = targetY;
+        facing = newFacing;
+        setTimeout(done, dur + 100);
+      }
+
+      function floatTo (targetY, done) {
+        var distY = Math.abs(targetY - posY);
+        var dur = Math.max(2200, Math.round(distY * rand(160, 220)));
+        walker.style.transition = 'transform ' + dur + 'ms ease-in-out, opacity 0.6s ease';
+        applyTransform(pos, targetY, facing);
+        posY = targetY;
+        setTimeout(done, dur + 100);
+      }
+
+      function doAction (name, ms, done) {
+        walker.classList.add('action-' + name);
+        setTimeout(function () {
+          walker.classList.remove('action-' + name);
+          done();
+        }, ms);
+      }
+
+      function doVanish (done) {
+        walker.classList.add('action-vanish');
+        setTimeout(function () {
+          // No transition for the reposition step — vanish hides the
+          // walker via opacity, we teleport while invisible.
+          walker.style.transition = 'opacity 0.7s ease';
+          var newX = rand(5, 88);
+          var newY = pickY();
+          var newFacing = Math.random() > 0.5 ? 1 : -1;
+          applyTransform(newX, newY, newFacing);
+          pos = newX;
+          posY = newY;
+          facing = newFacing;
+          // Force a layout flush so the transform applies before we
+          // remove the vanish class and start the fade-back-in.
+          void walker.offsetWidth;
+          walker.classList.remove('action-vanish');
+          setTimeout(done, 800);
+        }, 700);
+      }
+
+      function doPace (done) {
+        var base = pos;
+        var i = 0;
+        function nextStep () {
+          if (i >= 3) { done(); return; }
+          walkTo(base + rand(-12, -5), null, function () {
+            walkTo(base + rand(5, 12), null, function () {
+              i++;
+              nextStep();
+            });
+          });
+        }
+        nextStep();
+      }
+
+      function doLookback (done) {
+        walker.style.transition = 'transform 0.3s ease';
+        applyTransform(pos, posY, -facing);
+        setTimeout(function () {
+          applyTransform(pos, posY, facing);
+          setTimeout(done, 300);
+        }, rand(600, 1400));
+      }
+
+      function doDash (done) {
+        var targetX = rand(0, 92);
+        var targetY = posY + rand(-12, 12);
+        targetY = Math.max(2, Math.min(80, targetY));
+        var dur = rand(450, 700);
+        var newFacing = (targetX >= pos) ? 1 : -1;
+        walker.style.transition = 'transform ' + dur + 'ms ease-out';
+        applyTransform(targetX, targetY, newFacing);
+        pos = targetX;
+        posY = targetY;
+        facing = newFacing;
+        setTimeout(done, dur + 80);
+      }
+
+      function doZigzag (done) {
+        var hops = 3;
+        var i = 0;
+        function nextHop () {
+          if (i >= hops) { done(); return; }
+          var targetX = Math.max(0, Math.min(92, pos + rand(-22, 22)));
+          var targetY = Math.max(2, Math.min(80, posY + rand(-18, 18)));
+          var dur = rand(280, 480);
+          var newFacing = (targetX >= pos) ? 1 : -1;
+          walker.style.transition = 'transform ' + dur + 'ms ease-out';
+          applyTransform(targetX, targetY, newFacing);
+          pos = targetX;
+          posY = targetY;
+          facing = newFacing;
+          setTimeout(function () { i++; nextHop(); }, dur + 50);
+        }
+        nextHop();
+      }
+
+      /* ─── Tamagotchi behaviour ─────────────────────────────────
+         The ghost's personality reacts to the data the bridge
+         delivers. Mood is already derived from the highest bucket
+         usedPct (`body.dataset.mood`), set inside renderBuckets;
+         every step() reads it back, picks a weighted action from
+         the matching pool, and waits a mood-appropriate amount of
+         time before the next move.
+
+         Design priorities:
+           1. React, don't randomly twitch. Mood transitions trigger
+              a one-shot "tell" so the user catches the change.
+           2. Use the whole screen. `drift` and `patrol` cross
+              significant horizontal distance; `peek` is the local
+              breadcrumb between them.
+           3. Not annoying. CRIT mood is deliberately NOT the most
+              hectic — the red pulsing bars carry that signal. The
+              ghost stays measured even at high usage.
+
+         Wait-between-action ranges (in ms) tune how lively each
+         mood feels. Roughly action density per minute:
+           cool ~10/min · focus ~17/min · busy ~25/min ·
+           hot ~30/min · crit ~22/min                             */
+
+      // slideTo: like walkTo but with an explicit duration + easing.
+      // walkTo derives duration from distance, which is right for the
+      // big "wanderings" but wrong for short steppy moves like tiptoe
+      // or for sharp pounces. Custom-duration actions go through this.
+      function slideTo (targetX, targetY, dur, easing, done) {
+        var newFacing = (targetX >= pos) ? 1 : -1;
+        walker.style.transition = 'transform ' + dur + 'ms ' + (easing || 'linear');
+        applyTransform(targetX, targetY, newFacing);
+        pos = targetX;
+        posY = targetY;
+        facing = newFacing;
+        setTimeout(done, dur + 50);
+      }
+
+      function doSleep (done) {
+        walker.classList.add('action-sleep');
+        var ms = rand(4000, 8000);
+        setTimeout(function () {
+          walker.classList.remove('action-sleep');
+          done();
+        }, ms);
+      }
+
+      // Drift = long walk crossing a meaningful chunk of the screen.
+      function doDrift (done) {
+        var goLeft  = (pos > 55);
+        var goRight = (pos < 45);
+        var targetX = goLeft  ? rand(0, 35)
+                    : goRight ? rand(60, 92)
+                              : (Math.random() < 0.5 ? rand(0, 30) : rand(65, 92));
+        var targetY = Math.max(2, Math.min(82, posY + rand(-15, 15)));
+        walkTo(targetX, targetY, done);
+      }
+
+      // Patrol = walk to the far side, more directional than drift.
+      function doPatrol (done) {
+        var targetX = (pos < 50) ? rand(75, 92) : rand(0, 22);
+        var targetY = Math.max(2, Math.min(45, posY + rand(-8, 8)));
+        walkTo(targetX, targetY, done);
+      }
+
+      // Peek = small step + lookback. Curious without dashing around.
+      function doPeek (done) {
+        var dx = (pos > 60) ? -rand(5, 12)
+               : (pos < 40) ?  rand(5, 12)
+                             : (Math.random() < 0.5 ? -1 : 1) * rand(5, 10);
+        var targetX = Math.max(0, Math.min(92, pos + dx));
+        walkTo(targetX, posY, function () { doLookback(done); });
+      }
+
+      // Idle = explicit longer pause (the inter-action wait gives
+      // shorter breaks naturally).
+      function doIdle (done) { setTimeout(done, rand(1500, 3500)); }
+
+      // ── New variety primitives ────────────────────────────────
+
+      // Float = vertical-only smooth movement to a new height.
+      // Looks like the ghost is "rising" or "sinking" without going
+      // anywhere horizontally — different visual rhythm from a walk.
+      function doFloat (done) {
+        var dir   = Math.random() < 0.5 ? -1 : 1;
+        var delta = rand(15, 35);
+        var newY  = Math.max(2, Math.min(82, posY + dir * delta));
+        floatTo(newY, done);
+      }
+
+      // Hover = float up briefly, pause mid-air, float back down.
+      // Reads as "daydreaming" — calm + slightly playful.
+      function doHover (done) {
+        var midY  = Math.min(82, posY + rand(8, 18));
+        var baseY = posY;
+        floatTo(midY, function () {
+          setTimeout(function () { floatTo(baseY, done); }, rand(800, 1400));
+        });
+      }
+
+      // Circle = small square-ish loop (right, up, left, down OR
+      // mirrored). Tight pattern, takes the ghost on a tiny tour.
+      function doCircle (done) {
+        var size = rand(8, 14);
+        var startX = pos;
+        var startY = posY;
+        var dirX = (pos > 55) ? -1 : 1;       // loop towards open space
+        var stepDur = rand(600, 900);
+        slideTo(Math.max(0, Math.min(92, pos + dirX * size)), posY, stepDur, 'ease-in-out', function () {
+          slideTo(pos, Math.min(82, posY + size), stepDur, 'ease-in-out', function () {
+            slideTo(Math.max(0, Math.min(92, pos - dirX * size)), posY, stepDur, 'ease-in-out', function () {
+              slideTo(startX, startY, stepDur, 'ease-in-out', done);
+            });
+          });
+        });
+      }
+
+      // Pounce = sharp downward dash. Cat-like burst, used as an
+      // occasional accent move in busy/hot moods.
+      function doPounce (done) {
+        var targetY = Math.max(2, posY - rand(15, 25));
+        var targetX = Math.max(0, Math.min(92, pos + rand(-10, 10)));
+        slideTo(targetX, targetY, rand(300, 500), 'cubic-bezier(0.5, 0, 0.75, 0)', done);
+      }
+
+      // Double-take = two quick lookbacks in a row. Suspicious /
+      // alarmed micro-gesture, more expressive than a single flip.
+      function doDoubletake (done) {
+        doLookback(function () {
+          setTimeout(function () { doLookback(done); }, 200);
+        });
+      }
+
+      // Tiptoe = three small steps with short pauses. Sneaky.
+      function doTiptoe (done) {
+        var steps = 3;
+        var i = 0;
+        function nextStep () {
+          if (i >= steps) { done(); return; }
+          var dx = (Math.random() < 0.5 ? -1 : 1) * rand(2, 5);
+          var targetX = Math.max(0, Math.min(92, pos + dx));
+          slideTo(targetX, posY, rand(350, 600), 'ease-in-out', function () {
+            i++;
+            setTimeout(nextStep, rand(200, 400));
+          });
+        }
+        nextStep();
+      }
+
+      // Sneeze = quick down-jolt then back. Rare comic moment.
+      function doSneeze (done) {
+        var baseY = posY;
+        slideTo(pos, Math.max(0, baseY - 6), 120, 'ease-out', function () {
+          slideTo(pos, baseY, 280, 'ease-out', done);
+        });
+      }
+
+      // Map of behaviour names → handlers. New entries map directly,
+      // existing primitives are aliased so the pools below stay
+      // declarative.
+      var ACTIONS = {
+        // Wandering
+        drift:      doDrift,
+        patrol:     doPatrol,
+        peek:       doPeek,
+        pace:       doPace,
+        tiptoe:     doTiptoe,
+        circle:     doCircle,
+        // Vertical
+        float:      doFloat,
+        hover:      doHover,
+        pounce:     doPounce,
+        // Idle
+        idle:       doIdle,
+        sleep:      doSleep,
+        lookback:   doLookback,
+        doubletake: doDoubletake,
+        // Burst / expression
+        hop:        function (d) { doAction('hop',     500,  d); },
+        jump:       function (d) { doAction('jump',    900,  d); },
+        stretch:    function (d) { doAction('stretch', 700,  d); },
+        dance:      function (d) { doAction('dance',  2000,  d); },
+        spin:       function (d) { doAction('spin',    700,  d); },
+        groom:      function (d) { doAction('groom',  1600,  d); },
+        // Distress
+        wobble:     function (d) { doAction('wobble', 1200,  d); },
+        shudder:    function (d) { doAction('shudder', 500,  d); },
+        dash:       doDash,
+        zigzag:     doZigzag,
+        sneeze:     doSneeze,
+        // Reset
+        vanish:     doVanish
+      };
+
+      // Mood pools. Each pool draws from EVERY behaviour category but
+      // weights them differently. Rule of thumb:
+      //   * Big weights = the action's "home" mood — typical move you
+      //     see most.
+      //   * Weight=1 entries = rare surprises that keep the loop
+      //     interesting; you'll catch them once every couple of
+      //     minutes. They prevent the same handful of moves looping.
+      // Each pool has 14+ different actions so no mood feels limited.
+      var POOLS = {
+        cool: [
+          // Calm baseline
+          { fn: 'drift',      w: 3 },
+          { fn: 'idle',       w: 3 },
+          { fn: 'sleep',      w: 3 },
+          { fn: 'lookback',   w: 2 },
+          { fn: 'groom',      w: 2 },
+          { fn: 'stretch',    w: 2 },
+          // Curious accents
+          { fn: 'peek',       w: 2 },
+          { fn: 'float',      w: 2 },
+          { fn: 'hover',      w: 2 },
+          { fn: 'tiptoe',     w: 1 },
+          { fn: 'circle',     w: 1 },
+          { fn: 'doubletake', w: 1 },
+          // Rare surprises
+          { fn: 'hop',        w: 1 },
+          { fn: 'vanish',     w: 1 },
+          { fn: 'dance',      w: 1 },
+          { fn: 'sneeze',     w: 1 }
+        ],
+        focus: [
+          { fn: 'drift',      w: 4 },
+          { fn: 'patrol',     w: 3 },
+          { fn: 'peek',       w: 3 },
+          { fn: 'idle',       w: 2 },
+          { fn: 'lookback',   w: 2 },
+          { fn: 'float',      w: 2 },
+          { fn: 'hover',      w: 2 },
+          { fn: 'circle',     w: 2 },
+          { fn: 'hop',        w: 2 },
+          { fn: 'pace',       w: 1 },
+          { fn: 'tiptoe',     w: 1 },
+          { fn: 'doubletake', w: 1 },
+          { fn: 'groom',      w: 1 },
+          { fn: 'stretch',    w: 1 },
+          { fn: 'spin',       w: 1 },
+          { fn: 'sleep',      w: 1 },
+          { fn: 'dance',      w: 1 },
+          { fn: 'vanish',     w: 1 }
+        ],
+        busy: [
+          { fn: 'drift',      w: 3 },
+          { fn: 'patrol',     w: 4 },
+          { fn: 'pace',       w: 2 },
+          { fn: 'hop',        w: 3 },
+          { fn: 'jump',       w: 1 },
+          { fn: 'dance',      w: 1 },
+          { fn: 'spin',       w: 1 },
+          { fn: 'peek',       w: 2 },
+          { fn: 'pounce',     w: 1 },
+          { fn: 'circle',     w: 2 },
+          { fn: 'float',      w: 2 },
+          { fn: 'hover',      w: 1 },
+          { fn: 'lookback',   w: 1 },
+          { fn: 'doubletake', w: 1 },
+          { fn: 'tiptoe',     w: 1 },
+          { fn: 'sneeze',     w: 1 },
+          { fn: 'vanish',     w: 1 }
+        ],
+        hot: [
+          { fn: 'drift',      w: 2 },
+          { fn: 'patrol',     w: 3 },
+          { fn: 'dash',       w: 3 },
+          { fn: 'zigzag',     w: 2 },
+          { fn: 'wobble',     w: 2 },
+          { fn: 'hop',        w: 2 },
+          { fn: 'pounce',     w: 2 },
+          { fn: 'shudder',    w: 1 },
+          { fn: 'peek',       w: 1 },
+          { fn: 'doubletake', w: 1 },
+          { fn: 'jump',       w: 1 },
+          { fn: 'spin',       w: 1 },
+          { fn: 'circle',     w: 1 },
+          { fn: 'vanish',     w: 1 }
+        ],
+        crit: [
+          { fn: 'dash',       w: 2 },
+          { fn: 'wobble',     w: 2 },
+          { fn: 'shudder',    w: 2 },
+          { fn: 'zigzag',     w: 2 },
+          { fn: 'vanish',     w: 2 },
+          { fn: 'pounce',     w: 1 },
+          { fn: 'doubletake', w: 1 },
+          { fn: 'hop',        w: 1 },
+          { fn: 'peek',       w: 1 },
+          { fn: 'hover',      w: 1 },   // brief breathing
+          { fn: 'idle',       w: 1 }
+        ]
+      };
+
+      // Mood-tuned pauses between actions (in ms).
+      var WAIT_MS = {
+        cool:  [3000, 6000],
+        focus: [1500, 3500],
+        busy:  [1000, 2500],
+        hot:   [800,  2000],
+        crit:  [1000, 2500]
+      };
+
+      // Transition reactions — one-shot when mood escalates or
+      // de-escalates. Keeps the ghost feeling "alive to the data".
+      function pickReaction (from, to) {
+        // De-escalations: relax.
+        if (from === 'crit' && to !== 'crit')       return 'stretch';
+        if (from === 'hot'  && (to === 'busy' || to === 'focus' || to === 'cool')) return 'groom';
+        if (from === 'busy' && (to === 'focus' || to === 'cool'))  return 'lookback';
+        // Escalations: notice.
+        if (to === 'crit')                          return 'shudder';
+        if (to === 'hot'  && from !== 'crit')       return 'wobble';
+        if (to === 'busy' && (from === 'cool' || from === 'focus')) return 'hop';
+        if (to === 'focus' && from === 'cool')      return 'stretch';
+        return null;
+      }
+
+      function getMood () { return document.body.dataset.mood || 'focus'; }
+
+      function pickWeighted (poolArr) {
+        var total = 0;
+        for (var i = 0; i < poolArr.length; i++) total += poolArr[i].w;
+        var r = Math.random() * total;
+        for (var j = 0; j < poolArr.length; j++) {
+          r -= poolArr[j].w;
+          if (r <= 0) return poolArr[j].fn;
+        }
+        return poolArr[0].fn;
+      }
+
+      var lastMood = 'focus';
+      var lastFn   = null;
+
+      function step () {
+        var mood = getMood();
+
+        // Mood transition → one-shot reaction.
+        var fnName = null;
+        if (mood !== lastMood) {
+          fnName = pickReaction(lastMood, mood);
+          lastMood = mood;
+        }
+        if (!fnName) {
+          // Avoid two distress moves back to back unless we're in CRIT
+          // (then it's expected). Re-roll once for breathing room.
+          fnName = pickWeighted(POOLS[mood] || POOLS.focus);
+          if (mood !== 'crit' && lastFn && isDistress(lastFn) && isDistress(fnName)) {
+            fnName = pickWeighted(POOLS[mood] || POOLS.focus);
+          }
+        }
+        lastFn = fnName;
+
+        var waits  = WAIT_MS[mood] || WAIT_MS.focus;
+        var action = ACTIONS[fnName] || doIdle;
+        action(function () {
+          setTimeout(step, rand(waits[0], waits[1]));
+        });
+      }
+
+      function isDistress (name) {
+        return name === 'dash' || name === 'zigzag' ||
+               name === 'wobble' || name === 'shudder';
+      }
+
+      // Kick-off: a gentle entry walk into the middle area, then the
+      // tamagotchi loop. The intro keeps the very first paint from
+      // looking static while the JS warms up.
+      setTimeout(function () {
+        walkTo(rand(25, 75), rand(10, 35), function () { setTimeout(step, 400); });
+      }, 500);
+    })();
+  </script>
+
+</body>
+</html>

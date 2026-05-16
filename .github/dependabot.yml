@@ -6,6 +6,23 @@
 version: 2
 updates:
   # NuGet packages of the .NET example application.
+  #
+  # Split into TWO groups on purpose. A reference example's value is a
+  # known-good pinned set — the published binary was built and
+  # smoke-tested against exactly these versions. So we separate by
+  # blast radius:
+  #
+  #   • test-tooling  — xunit / test SDK / runner. CI green is a
+  #                     sufficient signal; safe to merge on green.
+  #   • app-runtime   — WebView2, H.NotifyIcon. These change the
+  #                     shipped .exe's behaviour in the WPF/WebView2
+  #                     layer that unit tests deliberately do NOT
+  #                     cover. Manual review + a full smoke test
+  #                     before this lands in a future release.
+  #
+  # Security updates still arrive as individual PRs (enable Dependabot
+  # security updates in repo settings) so a CVE is never blocked
+  # behind a routine version bump.
   - package-ecosystem: nuget
     directory: /applications/token-counter/dotnet
     schedule:
@@ -14,11 +31,17 @@ updates:
     commit-message:
       prefix: "deps"
     groups:
-      # One PR for all routine bumps; security updates still come
-      # individually so they're easy to triage and merge fast.
-      dotnet-dependencies:
+      test-tooling:
         applies-to: version-updates
-        patterns: ["*"]
+        patterns:
+          - "xunit*"
+          - "Microsoft.NET.Test.Sdk"
+          - "coverlet*"
+      app-runtime:
+        applies-to: version-updates
+        patterns:
+          - "Microsoft.Web.WebView2"
+          - "H.NotifyIcon*"
 
   # The GitHub Actions used by the CI + release workflows.
   - package-ecosystem: github-actions

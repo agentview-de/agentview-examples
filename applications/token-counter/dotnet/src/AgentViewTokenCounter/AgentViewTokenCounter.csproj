@@ -45,14 +45,14 @@
          .Wpf variant lets us re-parent the WebView2 control between a
          hidden background host Window and the visible LoginWindow
          without losing the cookie jar. -->
-    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.2792.45" />
+    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.3967.48" />
 
     <!-- WPF doesn't ship a NotifyIcon. Hardcodet's library is the de-
          facto standard, MIT-licensed, and has been maintained since
          the early .NET 4 days. The XAML-bindable ContextMenu it
          exposes is the reason we picked it over rolling our own
          P/Invoke shim around Shell_NotifyIcon. -->
-    <PackageReference Include="H.NotifyIcon.Wpf" Version="2.3.1" />
+    <PackageReference Include="H.NotifyIcon.Wpf" Version="2.4.1" />
   </ItemGroup>
 
   <!-- Self-hosted display assets. The .exe publishes the HTML + the

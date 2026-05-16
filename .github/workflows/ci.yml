@@ -42,13 +42,18 @@ jobs:
         with:
           dotnet-version: '10.0.x'
 
-      - name: Restore
-        working-directory: applications/token-counter/dotnet
-        run: dotnet restore AgentViewTokenCounter.sln
+      # The app project sets <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+      # in a Release-only PropertyGroup (for the single-file .exe). A
+      # SEPARATE `dotnet restore` does not see that Release-conditioned
+      # RID, so a later `build -c Release --no-restore` fails with
+      # NETSDK1047 ("assets file doesn't have a target for
+      # net10.0-windows/win-x64"). Letting `build` do its own implicit,
+      # RID-aware restore is the fix — and it makes CI run the *exact*
+      # two commands CONTRIBUTING.md tells contributors to run locally.
 
       - name: Build (Release, warnings are errors)
         working-directory: applications/token-counter/dotnet
-        run: dotnet build AgentViewTokenCounter.sln -c Release --no-restore
+        run: dotnet build AgentViewTokenCounter.sln -c Release
 
       - name: Test
         working-directory: applications/token-counter/dotnet
